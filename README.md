@@ -7,6 +7,17 @@ Every engagement starts with a written scope and acceptance cases. I do not
 claim revenue, awards, or customer results that have not been independently
 verified.
 
+## Start with a free sample
+
+Use one of the public samples before requesting paid work:
+
+- [Spreadsheet preflight checklist](samples/spreadsheet-preflight-checklist.md)
+- [GitHub Actions: the first 15 minutes](samples/ci-first-15-minutes.md)
+- [AI agent skill acceptance checklist](samples/agent-skill-acceptance-checklist.md)
+- [Go cross-architecture workflow](samples/go-cross-architecture.yml)
+
+[Browse all samples and matching service scopes](SAMPLES.md)
+
 ## Services
 
 ### 1. Spreadsheet Structure Audit

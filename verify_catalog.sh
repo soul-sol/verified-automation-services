@@ -18,7 +18,14 @@ ruby -e '
 issue_forms=("$ROOT"/.github/ISSUE_TEMPLATE/*.yml)
 [[ "${#issue_forms[@]}" -eq 5 ]]
 
-for required in README.md DELIVERY.md; do
+for required in \
+  README.md \
+  DELIVERY.md \
+  SAMPLES.md \
+  samples/spreadsheet-preflight-checklist.md \
+  samples/ci-first-15-minutes.md \
+  samples/agent-skill-acceptance-checklist.md \
+  samples/go-cross-architecture.yml; do
   [[ -s "$ROOT/$required" ]]
 done
 
@@ -35,5 +42,10 @@ rg -q 'KRW 149,000' "$ROOT/README.md"
 rg -q 'KRW 299,000' "$ROOT/README.md"
 rg -q 'USD 29' "$ROOT/README.md"
 rg -q 'GitHub does not process or escrow payment' "$ROOT/DELIVERY.md"
+rg -q 'spreadsheet-audit.yml' "$ROOT/samples/spreadsheet-preflight-checklist.md"
+rg -q 'ci-triage.yml' "$ROOT/samples/ci-first-15-minutes.md"
+rg -q 'agent-skill.yml' "$ROOT/samples/agent-skill-acceptance-checklist.md"
+rg -q 'digital-kit.yml' "$ROOT/SAMPLES.md"
+rg -q 'go test ./...' "$ROOT/samples/go-cross-architecture.yml"
 
-print "service catalog verification: 12 checks passed"
+print "service catalog verification: 24 checks passed"
