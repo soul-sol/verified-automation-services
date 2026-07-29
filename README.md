@@ -85,6 +85,9 @@ published in this repository.
 
 [Ask about the ebook](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BEbook%20interest%5D%20GitHub%20Actions%20CI%20Triage)
 
+Free troubleshooting guide:
+[prove whether GitHub Actions exit code 137 is OOM](github-actions-exit-code-137-oom-fix.html).
+
 ### Go/Linux Cross-Architecture CI Starter Kit
 
 - Launch price: **USD 29**

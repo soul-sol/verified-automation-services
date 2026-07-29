@@ -31,6 +31,7 @@ for required in \
   developer-reliability-bundle.html \
   exec-format-error-docker-arm64-fix.html \
   github-actions-ci-triage-ebook.html \
+  github-actions-exit-code-137-oom-fix.html \
   go-cross-architecture-ci-kit.html \
   spreadsheet-preflight-ebook.html \
   spreadsheet-integrity-scorecard.html \
@@ -58,7 +59,7 @@ sitemap_urls=(
     --xpath '//*[local-name()="loc"]/text()' \
     "$ROOT/sitemap.xml" 2>/dev/null)}"
 )
-[[ "${#sitemap_urls[@]}" -eq 9 ]]
+[[ "${#sitemap_urls[@]}" -eq 10 ]]
 [[ "${sitemap_urls[(Ie)https://soul-sol.github.io/verified-automation-services/showcase.html]}" -eq 0 ]]
 
 indexable_pages=(
@@ -68,6 +69,7 @@ indexable_pages=(
   developer-reliability-bundle.html
   exec-format-error-docker-arm64-fix.html
   github-actions-ci-triage-ebook.html
+  github-actions-exit-code-137-oom-fix.html
   go-cross-architecture-ci-kit.html
   spreadsheet-integrity-scorecard.html
   spreadsheet-preflight-ebook.html
@@ -113,6 +115,15 @@ rg -q 'digital-kit.yml' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'digital-kit.yml' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'digital-kit.yml' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
+rg -q 'github-actions-exit-code-137-oom-fix.html' "$ROOT/index.html"
+rg -q 'State.OOMKilled' "$ROOT/github-actions-exit-code-137-oom-fix.html"
+rg -q 'memory.events' "$ROOT/github-actions-exit-code-137-oom-fix.html"
+rg -q 'github-actions-ci-triage-ebook.html' \
+  "$ROOT/github-actions-exit-code-137-oom-fix.html"
+rg -q '"@type": "BlogPosting"' \
+  "$ROOT/github-actions-exit-code-137-oom-fix.html"
+rg -q 'docs.github.com/en/actions/reference/runners/github-hosted-runners' \
+  "$ROOT/github-actions-exit-code-137-oom-fix.html"
 rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/index.html"
 rg -q 'spreadsheet-preflight-ebook.html' "$ROOT/index.html"
 rg -q 'agents-md-audit-kit.html' "$ROOT/index.html"
@@ -196,6 +207,7 @@ rg -q 'ci-triage.yml' "$ROOT/samples/ci-first-15-minutes.md"
 rg -q 'agent-skill.yml' "$ROOT/samples/agent-skill-acceptance-checklist.md"
 rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'exec-format-error-docker-arm64-fix.html' "$ROOT/SAMPLES.md"
+rg -q 'github-actions-exit-code-137-oom-fix.html' "$ROOT/SAMPLES.md"
 rg -q 'agents-md-audit-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'go test ./...' "$ROOT/samples/go-cross-architecture.yml"
 

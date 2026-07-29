@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static troubleshooting guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Diagnose GitHub Actions exit code 137 by separating OOM kills, container limits, job cancellation, and timeouts before adding memory."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="GitHub Actions exit code 137: prove OOM before adding RAM">
+    <meta
+      property="og:description"
+      content="A practical evidence ladder for SIGKILL, OOM, container limits, cancellation, and timeout failures."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/github-actions-exit-code-137-oom-fix.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/github-actions-exit-code-137-oom-fix.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>GitHub Actions exit code 137: prove OOM before adding RAM</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "GitHub Actions exit code 137: prove OOM before adding RAM",
+        "description": "Diagnose GitHub Actions exit code 137 by separating OOM kills, container limits, job cancellation, and timeouts before adding memory.",
+        "datePublished": "2026-07-30",
+        "dateModified": "2026-07-30",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/github-actions-exit-code-137-oom-fix.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#diagnose">Diagnose</a>
+          <a class="nav-link" href="#fixes">Fixes</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="github-actions-ci-triage-ebook.html"
+          >
+            CI ebook, USD 19
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">GitHub Actions troubleshooting guide</p>
+            <h1>GitHub Actions exit code 137: prove OOM before adding RAM</h1>
+            <p class="article-dek">
+              Exit 137 means the process ended after SIGKILL. Out-of-memory is
+              common, but the number alone does not prove it. Check cancellation,
+              timeout, container state, and memory evidence in that order.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-07-30">July 30, 2026</time></span>
+              <span>9 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#diagnose">Collect evidence</a></li>
+              <li><a href="#fixes">Apply the right fix</a></li>
+              <li><a href="#workflow">Add a memory trace</a></li>
+              <li><a href="#faq">Common questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                On Linux, exit code 137 is conventionally read as
+                <span class="inline-code">128 + 9</span>: the process was
+                terminated by <span class="inline-code">SIGKILL</span>.
+                An OOM killer can send that signal, but so can a container
+                kill, runner cancellation, timeout escalation, or another
+                supervising process.
+              </p>
+              <p>
+                Treat 137 as a termination clue, not a diagnosis. First inspect
+                the run conclusion and timing. Then check container
+                <span class="inline-code">OOMKilled</span>, cgroup
+                <span class="inline-code">memory.events</span>, or kernel logs.
+                Only tune memory or buy a larger runner after one of those
+                signals supports memory pressure.
+              </p>
+            </section>
+
+            <section id="diagnose">
+              <h2>Collect evidence in four passes</h2>
+
+              <h3>1. Check whether GitHub canceled the job</h3>
+              <p>
+                Open the workflow run summary before reading the last process
+                line in isolation. A canceled run, a superseded concurrency
+                group, a manual cancellation, or a duration that reaches
+                <span class="inline-code">timeout-minutes</span> points to job
+                control rather than memory.
+              </p>
+              <pre class="article-code"><code># Inspect run and job conclusions from a trusted local shell
+gh run view RUN_ID \
+  --json conclusion,status,createdAt,startedAt,updatedAt,jobs
+
+# Download the full log archive for the same run
+gh run view RUN_ID --log-failed</code></pre>
+              <p>
+                GitHub cancellation starts with interrupt and termination
+                signals, then kills the process tree if it does not exit. That
+                final forced kill can resemble an unexplained 137 in a child
+                process.
+              </p>
+
+              <h3>2. If Docker is involved, inspect container state</h3>
+              <pre class="article-code"><code>docker inspect CONTAINER_ID \
+  --format 'exit=&#123;&#123;.State.ExitCode&#125;&#125; oom=&#123;&#123;.State.OOMKilled&#125;&#125; error=&#123;&#123;.State.Error&#125;&#125;'
+
+docker ps -a --filter 'exited=137'</code></pre>
+              <p>
+                <span class="inline-code">OOMKilled=true</span> is direct
+                container evidence. A container exit of 137 with
+                <span class="inline-code">OOMKilled=false</span> still requires
+                investigation because Docker also reports 137 after other
+                SIGKILL paths.
+              </p>
+
+              <h3>3. On a self-hosted runner, read cgroup and kernel evidence</h3>
+              <pre class="article-code"><code># cgroup v2 counters
+cat /sys/fs/cgroup/memory.events 2&gt;/dev/null || true
+
+# Host-level OOM messages may require elevated log permissions
+dmesg -T 2&gt;/dev/null | grep -Ei 'out of memory|oom-kill|killed process' || true
+
+# Current memory and the largest resident processes
+free -h
+ps -eo pid,ppid,rss,comm,args --sort=-rss | head -20</code></pre>
+              <p>
+                In cgroup v2, a rising
+                <span class="inline-code">oom_kill</span> counter records
+                processes killed by an OOM killer in that cgroup. A
+                <span class="inline-code">max</span> or
+                <span class="inline-code">oom</span> event without
+                <span class="inline-code">oom_kill</span> is memory pressure,
+                but not proof that this process was killed.
+              </p>
+
+              <h3>4. Measure the failing command, not the whole job average</h3>
+              <pre class="article-code"><code>/usr/bin/time -v your-build-command
+
+# Useful fields:
+# Maximum resident set size
+# Elapsed wall clock time
+# Exit status</code></pre>
+              <p>
+                A job can look healthy before one compiler, linker, test shard,
+                or bundle step spikes. Measure the smallest reproducible command
+                and compare the same revision across repeated runs.
+              </p>
+
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Use the strongest signal, not the exit number alone</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Evidence</th>
+                      <th scope="col">Most likely class</th>
+                      <th scope="col">Next action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Run is canceled or reaches timeout</td>
+                      <td>Workflow control</td>
+                      <td>Fix cancellation, concurrency, or timeout behavior</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">OOMKilled=true</span></td>
+                      <td>Container memory limit</td>
+                      <td>Reduce peak use or change the justified limit</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">oom_kill</span> increases</td>
+                      <td>Cgroup or host OOM</td>
+                      <td>Find the peak process, then reduce or resize</td>
+                    </tr>
+                    <tr>
+                      <td>No OOM signal, process tree is killed</td>
+                      <td>Supervisor or cancellation</td>
+                      <td>Inspect runner and parent-process logs</td>
+                    </tr>
+                    <tr>
+                      <td>Lower concurrency succeeds repeatedly</td>
+                      <td>Probable memory pressure</td>
+                      <td>Keep telemetry and set a bounded parallelism policy</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="fixes">
+              <h2>Apply the fix that matches the evidence</h2>
+
+              <h3>Reduce peak concurrency before reducing test coverage</h3>
+              <pre class="article-code"><code># Jest
+npx jest --maxWorkers=2
+
+# Make
+make -j2
+
+# Go package build/test parallelism
+go test -p=2 ./...</code></pre>
+              <p>
+                This keeps the same work while limiting simultaneous memory
+                peaks. Record the before and after maximum resident set size;
+                otherwise a passing rerun may only be noise.
+              </p>
+
+              <h3>Split independent workloads into separate jobs</h3>
+              <p>
+                Compiling, testing, linting, and packaging in one job can retain
+                caches and worker processes at the same time. Separate jobs can
+                give each phase a clean runner, but artifact transfer and extra
+                minutes have a cost. Split only where the phase boundary is
+                real and outputs can be verified.
+              </p>
+
+              <h3>Tune a runtime limit only with headroom</h3>
+              <pre class="article-code"><code># Example for a Node process after measuring the runner budget
+NODE_OPTIONS=--max-old-space-size=4096 npm run build</code></pre>
+              <p>
+                A larger JavaScript heap can make the total process exceed the
+                runner sooner. Leave memory for native allocations, child
+                processes, the operating system, and service containers. Do
+                not copy a heap number without checking the current runner
+                specification and the job's other processes.
+              </p>
+
+              <h3>Use a larger or self-hosted runner last</h3>
+              <p>
+                GitHub publishes current standard and larger-runner
+                specifications, and the available sizes vary by repository,
+                plan, operating system, and architecture. A larger runner is
+                justified when the workload is already bounded, measured, and
+                still exceeds the supported machine. It is not a substitute
+                for an unbounded worker pool or a leaked process.
+              </p>
+
+              <aside class="article-callout" aria-labelledby="ebook-title">
+                <h3 id="ebook-title">Need a repeatable CI triage sequence?</h3>
+                <p>
+                  The
+                  <a href="github-actions-ci-triage-ebook.html">
+                    GitHub Actions CI Triage Ebook
+                  </a>
+                  separates code, workflow or runner, account-owner, and
+                  external-state failures before a patch is attempted. The
+                  launch price is USD 19 and a six-page preview is public.
+                </p>
+                <p>
+                  Start with the free
+                  <a href="samples/ci-first-15-minutes.md">
+                    CI first 15 minutes checklist
+                  </a>
+                  if you only need the initial evidence order.
+                </p>
+              </aside>
+            </section>
+
+            <section id="workflow">
+              <h2>Add a bounded memory trace to the failing step</h2>
+              <pre class="article-code"><code>- name: Run build with memory evidence
+  shell: bash
+  run: |
+    set -euo pipefail
+
+    monitor_memory() &#123;
+      while true; do
+        date -u '+%Y-%m-%dT%H:%M:%SZ'
+        free -h
+        ps -eo pid,ppid,rss,comm --sort=-rss | head -15
+        sleep 10
+      done
+    &#125;
+
+    monitor_memory &amp;
+    monitor_pid=$!
+    trap 'kill "$monitor_pid" 2&gt;/dev/null || true' EXIT
+
+    /usr/bin/time -v npm run build</code></pre>
+              <p>
+                Keep this diagnostic step temporary or route its output to a
+                short-retention artifact. Process lists and verbose logs can
+                reveal repository paths or command arguments, so review the
+                output before sharing it publicly. Never print secrets or full
+                environments.
+              </p>
+            </section>
+
+            <section id="faq">
+              <h2>Common questions</h2>
+
+              <h3>Is exit code 137 always an out-of-memory failure?</h3>
+              <p>
+                No. It indicates SIGKILL termination. OOM is one possible
+                sender, but Docker, GitHub runner cancellation, a timeout, or
+                another supervisor can also kill the process.
+              </p>
+
+              <h3>Why is there no JavaScript stack trace?</h3>
+              <p>
+                SIGKILL cannot be caught or handled by the target process. The
+                process has no opportunity to flush a stack trace, which is why
+                runner, container, cgroup, and peak-memory evidence matters.
+              </p>
+
+              <h3>Should I immediately increase Node max-old-space-size?</h3>
+              <p>
+                Not without measurement. The V8 heap is only part of total
+                memory. Native modules, bundlers, child processes, and the OS
+                also consume RAM, so a larger heap can move the failure rather
+                than remove it.
+              </p>
+
+              <h3>When should I pay for a larger runner?</h3>
+              <p>
+                After confirming a repeatable memory peak, bounding
+                concurrency, removing retained processes, and checking the
+                current runner specification. Keep the memory trace as a
+                regression guard after resizing.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://docs.github.com/en/actions/reference/runners/github-hosted-runners">
+                    GitHub Docs: GitHub-hosted runners reference
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax">
+                    GitHub Docs: Workflow syntax and timeout-minutes
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-cancellation">
+                    GitHub Docs: Workflow cancellation reference
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.github.com/en/actions/how-tos/monitor-workflows/enable-debug-logging">
+                    GitHub Docs: Enabling debug logging
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.docker.com/reference/cli/docker/container/ls/">
+                    Docker Docs: Container exit status 137
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html">
+                    Linux kernel documentation: cgroup v2 memory events
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Need the first cause, not another rerun?</p>
+            <h2>Get a scoped CI diagnosis</h2>
+            <p>
+              The fixed-scope service starts at 79,000 KRW and returns the
+              reproduced cause, evidence, and verification commands. Public
+              inquiries must not contain secrets or private source.
+            </p>
+          </div>
+          <a
+            class="action action-primary"
+            href="https://github.com/soul-sol/verified-automation-services/issues/new?template=ci-triage.yml&amp;title=%5BCI%20diagnosis%5D%20Exit%20code%20137"
+          >
+            Review diagnosis scope
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
