@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://soul-sol.github.io/verified-automation-services/sitemap.xml

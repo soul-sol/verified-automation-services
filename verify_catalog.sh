@@ -22,6 +22,9 @@ for required in \
   README.md \
   DELIVERY.md \
   SAMPLES.md \
+  robots.txt \
+  sitemap.xml \
+  c5b90a7f66e512329c156c654a6e0b79.txt \
   agents-md-audit-kit.html \
   ci-reliability-scorecard.html \
   ci-reliability-scorecard.mjs \
@@ -41,6 +44,42 @@ for required in \
   samples/go-cross-architecture.yml; do
   [[ -s "$ROOT/$required" ]]
 done
+
+/usr/bin/xmllint --noout "$ROOT/sitemap.xml"
+rg -Fq \
+  'Sitemap: https://soul-sol.github.io/verified-automation-services/sitemap.xml' \
+  "$ROOT/robots.txt"
+[[ "$(< "$ROOT/c5b90a7f66e512329c156c654a6e0b79.txt")" == \
+  "c5b90a7f66e512329c156c654a6e0b79" ]]
+
+sitemap_urls=(
+  "${(@f)$(/usr/bin/xmllint \
+    --xpath '//*[local-name()="loc"]/text()' \
+    "$ROOT/sitemap.xml" 2>/dev/null)}"
+)
+[[ "${#sitemap_urls[@]}" -eq 8 ]]
+[[ "${sitemap_urls[(Ie)https://soul-sol.github.io/verified-automation-services/showcase.html]}" -eq 0 ]]
+
+indexable_pages=(
+  index.html
+  agents-md-audit-kit.html
+  ci-reliability-scorecard.html
+  developer-reliability-bundle.html
+  github-actions-ci-triage-ebook.html
+  go-cross-architecture-ci-kit.html
+  spreadsheet-integrity-scorecard.html
+  spreadsheet-preflight-ebook.html
+)
+for page in "${indexable_pages[@]}"; do
+  if [[ "$page" == "index.html" ]]; then
+    canonical="https://soul-sol.github.io/verified-automation-services/"
+  else
+    canonical="https://soul-sol.github.io/verified-automation-services/$page"
+  fi
+  rg -Fq "href=\"$canonical\"" "$ROOT/$page"
+  [[ "${sitemap_urls[(Ie)$canonical]}" -gt 0 ]]
+done
+rg -Fq '<meta name="robots" content="noindex">' "$ROOT/showcase.html"
 
 if rg -n \
   'biz\.lifestep@gmail\.com|lim@video-wheel-control\.com|BEGIN .*PRIVATE KEY|gho_[A-Za-z0-9]+' \
