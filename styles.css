@@ -325,6 +325,16 @@ a {
   word-break: keep-all;
 }
 
+.hero .product-heading {
+  max-width: none;
+  font-size: clamp(2.25rem, 5vw, 4.25rem);
+}
+
+.phrase-line {
+  display: block;
+  white-space: nowrap;
+}
+
 .hero-lead {
   max-width: 29rem;
   margin: var(--space-6) 0 0;
@@ -798,6 +808,10 @@ a {
 
   .hero h1 {
     font-size: clamp(3rem, 15vw, 4.5rem);
+  }
+
+  .hero .product-heading {
+    font-size: clamp(2.25rem, 10vw, 3.5rem);
   }
 
   .hero-media figcaption {

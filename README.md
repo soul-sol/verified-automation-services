@@ -18,7 +18,23 @@ Use one of the public samples before requesting paid work:
 
 [Browse all samples and matching service scopes](SAMPLES.md)
 
-## Featured ebook
+## Featured ebooks
+
+### Spreadsheet Preflight Ebook + CLI
+
+- Launch price: **USD 9**
+- Format: 23-page Korean PDF
+- Extras: one-page checklist, dependency-free read-only Python CLI, and quick start
+- Free preview: [read the first 6 pages](downloads/spreadsheet-preflight-preview-ko.pdf)
+- Product details: [review the full scope](spreadsheet-preflight-ebook.html)
+
+The guide explains seven structural workbook signals before an XLSX/XLSM file
+is opened for editing. The CLI reports those signals as JSON without modifying
+the workbook. It does not calculate formulas, analyze VBA, inspect external
+targets, or certify that a file is safe. The full paid ZIP is not published in
+this repository.
+
+[Ask about the spreadsheet ebook](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BEbook%20interest%5D%20Spreadsheet%20Preflight)
 
 ### GitHub Actions CI Failure Triage Ebook
 
@@ -82,7 +98,7 @@ an untested prompt.
 
 | Product | Price |
 |---|---:|
-| Spreadsheet Integrity Audit Kit | USD 9 |
+| Spreadsheet Preflight Ebook + CLI | USD 9 |
 | GitHub Actions CI Triage Ebook + templates | USD 19 |
 | Open Source Bounty Monitor Kit | USD 19 |
 | Go/Linux Cross-Architecture CI Starter Kit | USD 29 |

@@ -23,8 +23,11 @@ for required in \
   DELIVERY.md \
   SAMPLES.md \
   github-actions-ci-triage-ebook.html \
+  spreadsheet-preflight-ebook.html \
   downloads/github-actions-ci-triage-preview-ko.pdf \
+  downloads/spreadsheet-preflight-preview-ko.pdf \
   assets/ci-triage-ebook-spread.webp \
+  assets/spreadsheet-preflight-ebook-spread.webp \
   samples/spreadsheet-preflight-checklist.md \
   samples/ci-first-15-minutes.md \
   samples/agent-skill-acceptance-checklist.md \
@@ -58,13 +61,27 @@ rg -q 'issues/new/choose' "$ROOT/index.html"
 rg -q 'spreadsheet-audit.yml' "$ROOT/index.html"
 rg -q 'ci-triage.yml' "$ROOT/index.html"
 rg -q 'agent-skill.yml' "$ROOT/index.html"
-rg -q 'digital-kit.yml' "$ROOT/index.html"
+rg -q 'digital-kit.yml' "$ROOT/github-actions-ci-triage-ebook.html"
+rg -q 'digital-kit.yml' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
+rg -q 'spreadsheet-preflight-ebook.html' "$ROOT/index.html"
 rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
   "$ROOT/github-actions-ci-triage-ebook.html"
 rg -Fq 'GitHub Actions CI Triage Ebook + templates' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
+rg -q 'USD 9' "$ROOT/spreadsheet-preflight-ebook.html"
+rg -q 'downloads/spreadsheet-preflight-preview-ko.pdf' \
+  "$ROOT/spreadsheet-preflight-ebook.html"
+rg -Fq 'Spreadsheet Preflight Ebook + CLI' \
+  "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
+
+if rg -n \
+  'spreadsheet-preflight-bundle|audit_workbook\.py|PRODUCT_MANIFEST\.md' \
+  "$ROOT/downloads"; then
+  echo "Paid spreadsheet product files must not be public." >&2
+  exit 1
+fi
 
 if rg -n '—|biz\.lifestep@gmail\.com|skilly12@gmail\.com|vbn1477@gmail\.com' \
   "$ROOT/index.html" "$ROOT/styles.css"; then
