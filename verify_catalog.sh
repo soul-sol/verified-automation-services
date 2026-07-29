@@ -23,6 +23,7 @@ for required in \
   DELIVERY.md \
   SAMPLES.md \
   agents-md-audit-kit.html \
+  developer-reliability-bundle.html \
   github-actions-ci-triage-ebook.html \
   go-cross-architecture-ci-kit.html \
   spreadsheet-preflight-ebook.html \
@@ -70,6 +71,7 @@ rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
 rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/index.html"
 rg -q 'spreadsheet-preflight-ebook.html' "$ROOT/index.html"
 rg -q 'agents-md-audit-kit.html' "$ROOT/index.html"
+rg -q 'developer-reliability-bundle.html' "$ROOT/index.html"
 rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
   "$ROOT/github-actions-ci-triage-ebook.html"
@@ -90,6 +92,12 @@ rg -q 'https://github.com/soul-sol/agents-md-guide-ko' \
   "$ROOT/agents-md-audit-kit.html"
 rg -Fq 'AGENTS.md Audit Kit + templates' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
+rg -q 'USD 49' "$ROOT/developer-reliability-bundle.html"
+rg -q 'USD 85' "$ROOT/developer-reliability-bundle.html"
+rg -Fq 'Developer Reliability Bundle — USD 49' \
+  "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
+rg -q 'developer-reliability-bundle-v1.0.0' \
+  "$ROOT/developer-reliability-bundle.html"
 
 if rg -n \
   'spreadsheet-preflight-bundle|audit_workbook\.py|PRODUCT_MANIFEST\.md' \

@@ -21,6 +21,22 @@ Use one of the public samples before requesting paid work:
 
 ## Featured digital products
 
+### Developer Reliability Bundle
+
+- Launch price: **USD 49**
+- Individual launch-price total: **USD 85**
+- Format: five independently versioned ZIP products in one verified bundle
+- Includes: two Korean technical ebooks, three execution kits, checksums, and
+  a delivery checklist
+- Product details: [review the full bundle](developer-reliability-bundle.html)
+
+The bundle combines spreadsheet preflight, GitHub Actions triage, AGENTS.md
+auditing, OSS bounty monitoring, and Go/Linux cross-architecture CI. Every
+internal ZIP passes its own archive check, and the outer package rebuild is
+deterministic. The full paid bundle is not published in this repository.
+
+[Ask about the reliability bundle](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BBundle%20interest%5D%20Developer%20Reliability%20Bundle)
+
 ### Spreadsheet Preflight Ebook + CLI
 
 - Launch price: **USD 9**
@@ -133,6 +149,7 @@ an untested prompt.
 
 | Product | Price |
 |---|---:|
+| Developer Reliability Bundle, 5 products | USD 49 |
 | Spreadsheet Preflight Ebook + CLI | USD 9 |
 | AGENTS.md Audit Kit + templates | USD 9 |
 | GitHub Actions CI Triage Ebook + templates | USD 19 |
