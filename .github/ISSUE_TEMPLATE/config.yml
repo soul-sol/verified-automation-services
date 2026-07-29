@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Read delivery and privacy rules first
+    url: https://github.com/soul-sol/verified-automation-services/blob/main/DELIVERY.md
+    about: Never post secrets, private code, customer data, or proprietary files.
+

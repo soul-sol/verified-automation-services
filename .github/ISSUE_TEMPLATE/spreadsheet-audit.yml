@@ -1,0 +1,53 @@
+name: Spreadsheet structure audit
+description: Request a scoped XLSX/XLSM structure and integrity review.
+title: "[Spreadsheet audit] "
+labels:
+  - inquiry
+  - spreadsheet
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public. Describe the workbook without uploading it or exposing private data.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - Basic — KRW 49,000
+        - Standard — KRW 99,000
+        - Advanced — KRW 149,000
+    validations:
+      required: true
+  - type: input
+    id: file_count
+    attributes:
+      label: Number and type of files
+      placeholder: "Example: one XLSX workbook, approximately 12 sheets"
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Desired outcome
+      description: Explain what must be checked and what must remain unchanged.
+    validations:
+      required: true
+  - type: textarea
+    id: known_risks
+    attributes:
+      label: Known errors or risk areas
+      placeholder: "Example: hidden sheets, external links, stale formula errors"
+  - type: input
+    id: deadline
+    attributes:
+      label: Desired deadline
+      placeholder: "YYYY-MM-DD or flexible"
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Public issue confirmation
+      options:
+        - label: I have not included credentials, private files, personal data, or proprietary workbook content.
+          required: true
+

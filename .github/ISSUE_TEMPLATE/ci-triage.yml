@@ -1,0 +1,56 @@
+name: GitHub Actions CI diagnosis
+description: Request diagnosis or a minimal tested CI repair.
+title: "[CI diagnosis] "
+labels:
+  - inquiry
+  - ci
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share only public repository and run URLs. Redact secrets and private infrastructure details.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - Diagnosis — KRW 79,000
+        - Patch — KRW 149,000
+        - Complex — quote required
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Public repository URL
+      placeholder: "https://github.com/owner/repository"
+    validations:
+      required: true
+  - type: input
+    id: failing_run
+    attributes:
+      label: Failing workflow run or check URL
+      placeholder: "https://github.com/owner/repository/actions/runs/..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: State the platform, command, and result that must pass.
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What has already been tried?
+  - type: checkboxes
+    id: access
+    attributes:
+      label: Access confirmation
+      options:
+        - label: The repository and failing evidence are public and require no credentials.
+          required: true
+        - label: I have not posted tokens, secrets, private runner details, or customer data.
+          required: true
+
