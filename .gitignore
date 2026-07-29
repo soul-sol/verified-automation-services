@@ -1,0 +1,4 @@
+.playwright-cli/
+output/
+test-results/
+.omo/evidence/
