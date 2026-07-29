@@ -3,6 +3,10 @@
 These small artifacts are free to use and adapt. They are designed to reveal
 whether a problem has a clear, testable scope before anyone requests paid work.
 
+Start with the [10-question CI reliability scorecard](ci-reliability-scorecard.html)
+to check reproducibility, permissions, secrets, cache, logs, ownership, and
+runtime coverage. Answers stay in the browser.
+
 | Sample | Use it when | Paid scope if needed |
 |---|---|---|
 | [Spreadsheet preflight checklist](samples/spreadsheet-preflight-checklist.md) | A workbook must be checked without changing it | [Request a spreadsheet audit](https://github.com/soul-sol/verified-automation-services/issues/new?template=spreadsheet-audit.yml) |

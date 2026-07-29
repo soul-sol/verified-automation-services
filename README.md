@@ -21,6 +21,15 @@ Use one of the public samples before requesting paid work:
 
 ## Featured digital products
 
+### Free CI Reliability Scorecard
+
+- Ten yes/no checks for reproducibility, permissions, secrets, cache, logs,
+  ownership, and runtime coverage
+- Runs entirely in the browser without uploads, accounts, or stored answers
+- Gives a score-specific path to free material, CI diagnosis, or the
+  Developer Reliability Bundle
+- Start here: [run the free scorecard](ci-reliability-scorecard.html)
+
 ### Developer Reliability Bundle
 
 - Launch price: **USD 49**

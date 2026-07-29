@@ -205,6 +205,31 @@ All spacing derives from 4px.
   caption, and does not encode PASS only through color.
 - **Motion**: none.
 
+### Assessment Question
+
+- **Structure**: numbered fieldset with one plain-language reliability check
+  and mutually exclusive `예` / `아니요` radio choices.
+- **Variants**: unanswered, answered yes, answered no, disabled showcase.
+- **Spacing**: `--space-6` panel padding, `--space-3` between choices.
+- **States**: default, hover, checked, focus-visible, disabled.
+- **Accessibility**: the question is a `legend`; native radio inputs remain in
+  the accessibility tree; each target is at least 48px high.
+- **Motion**: checked state changes color only; no animated layout.
+
+### Score Summary
+
+- **Structure**: answered progress, numeric score, named risk band, short
+  interpretation, privacy statement, and one primary next action.
+- **Variants**: incomplete, urgent 0–3, build 4–7, ready 8–10.
+- **Spacing**: `--space-8` panel padding; collapses actions to one column on
+  mobile.
+- **States**: incomplete is non-actionable; complete results expose a
+  score-specific link.
+- **Accessibility**: score and band are both text; the updating result uses a
+  polite live region; progress exposes `aria-valuemin`, `aria-valuemax`, and
+  `aria-valuenow`.
+- **Motion**: none.
+
 ## 6. Motion & Interaction
 
 | Type | Duration | Easing | Usage |
@@ -236,7 +261,8 @@ Strategy: ring borders plus tonal shift.
 - Heading order is sequential and the main content has a skip target.
 - Korean and English remain readable at 200% zoom.
 - The page respects reduced motion, system color scheme, and browser zoom.
-- No form or personal-data input exists on the static page.
+- Assessment controls collect only local yes/no answers. No name, email,
+  repository, file, secret, or personal data is requested, stored, or sent.
 
 ### Inclusive Personas
 

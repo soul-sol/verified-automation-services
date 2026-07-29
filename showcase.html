@@ -1,12 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Component Showcase | Verified Automation Services</title>
-    <meta name="robots" content="noindex" />
-    <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="styles.css" />
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -81,7 +81,7 @@
                   alt=""
                   width="1200"
                   height="900"
-                />
+                >
               </div>
               <div class="sample-body">
                 <h3 class="sample-title">스프레드시트 사전점검</h3>
@@ -94,7 +94,7 @@
 
             <article class="sample-tile">
               <div class="sample-preview" data-position="two">
-                <img src="assets/deliverables-wall.webp" alt="" width="1200" height="900" />
+                <img src="assets/deliverables-wall.webp" alt="" width="1200" height="900">
               </div>
               <div class="sample-body">
                 <h3 class="sample-title">CI 첫 15분 진단</h3>
@@ -105,7 +105,7 @@
 
             <article class="sample-tile">
               <div class="sample-preview" data-position="three">
-                <img src="assets/deliverables-wall.webp" alt="" width="1200" height="900" />
+                <img src="assets/deliverables-wall.webp" alt="" width="1200" height="900">
               </div>
               <div class="sample-body">
                 <h3 class="sample-title">Agent Skill 인수 기준</h3>
@@ -116,7 +116,7 @@
 
             <article class="sample-tile">
               <div class="sample-preview" data-position="four">
-                <img src="assets/deliverables-wall.webp" alt="" width="1200" height="900" />
+                <img src="assets/deliverables-wall.webp" alt="" width="1200" height="900">
               </div>
               <div class="sample-body">
                 <h3 class="sample-title">Go 교차 아키텍처 CI</h3>
@@ -195,6 +195,69 @@
               <h3>불러오기 오류</h3>
               <p>샘플을 불러오지 못했습니다. 공개 원문에서 다시 <span class="nowrap">확인해 주세요.</span></p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="showcase-group">
+        <div class="container">
+          <h2>Assessment controls</h2>
+          <div class="assessment-shell">
+            <div class="assessment-list">
+              <fieldset class="assessment-question">
+                <legend>
+                  <span class="question-number">질문 01</span>
+                  CI 실패를 코드, 인프라, 계정, 외부 상태로 구분합니까?
+                </legend>
+                <div class="choice-row">
+                  <label class="choice-control">
+                    <input type="radio" name="showcase-q1" checked>
+                    예
+                  </label>
+                  <label class="choice-control">
+                    <input type="radio" name="showcase-q1">
+                    아니요
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question" disabled>
+                <legend>
+                  <span class="question-number">비활성 상태</span>
+                  사용할 수 없는 질문은 선택할 수 없습니다.
+                </legend>
+                <div class="choice-row">
+                  <label class="choice-control">
+                    <input type="radio" name="showcase-disabled">
+                    예
+                  </label>
+                  <label class="choice-control">
+                    <input type="radio" name="showcase-disabled">
+                    아니요
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+            <aside class="score-summary" aria-label="점수 결과 예시">
+              <div class="score-progress-label">
+                <span>응답 진행</span>
+                <span>10 / 10</span>
+              </div>
+              <progress
+                class="score-progress-track"
+                value="10"
+                max="10"
+                aria-label="응답 진행 10개 중 10개"
+              >
+                10 / 10
+              </progress>
+              <p class="score-value">7 / 10</p>
+              <p class="score-band">표준화가 필요합니다</p>
+              <p class="score-copy">실패 분류와 재현 절차부터 고정하세요.</p>
+              <p class="score-privacy">응답은 브라우저 밖으로 전송되지 않습니다.</p>
+              <div class="score-actions">
+                <a class="action action-primary" href="#score-action">추천 자료 보기</a>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
