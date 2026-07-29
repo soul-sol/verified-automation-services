@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="10개의 예·아니요 질문으로 원본 보존, 수식, 숨김 구조, 외부 연결, 단위와 검산 절차를 브라우저 안에서 점검하는 무료 스프레드시트 무결성 자가진단입니다."
+    >
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/spreadsheet-integrity-scorecard.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>무료 스프레드시트 무결성 자가진단 | Verified Automation</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="주요 메뉴">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#assessment">10문항 진단</a>
+          <a class="nav-link" href="#meaning">점수 해석</a>
+          <a class="nav-link nav-link-primary action action-primary" href="#assessment">
+            무료로 시작
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="container hero">
+        <div class="hero-copy">
+          <p class="eyebrow">무료 · 2분 · 파일 업로드 없음</p>
+          <h1 class="product-heading">
+            <span class="phrase-line">엑셀 숫자를 믿기 전에</span>
+            <span class="phrase-line">구조부터 점검하세요</span>
+          </h1>
+          <p class="hero-lead">
+            원본 보존, 수식, 숨김 구조, 외부 연결, 단위와 검산 절차를 10개
+            질문으로 점검합니다. 답변은 현재 브라우저에서만 계산됩니다.
+          </p>
+          <p class="english-summary" lang="en">
+            A private, browser-only spreadsheet integrity check in ten questions.
+          </p>
+          <div class="hero-actions">
+            <a class="action action-primary" href="#assessment">자가진단 시작</a>
+            <a class="action action-secondary" href="samples/spreadsheet-preflight-checklist.md">
+              무료 점검표
+            </a>
+          </div>
+        </div>
+
+        <figure class="hero-media code-showcase">
+          <div class="code-window">
+            <div class="code-window-header">
+              <span>spreadsheet-integrity</span>
+              <span>browser only</span>
+            </div>
+            <pre><code>10 checks
+  original preserved
+  inputs vs formulas
+  hidden structures
+  names and merges
+  external connections
+  cached errors
+  units and dates
+  manual overrides
+  control totals
+  independent review
+
+<span class="code-accent">0 uploads</span>
+<span class="code-accent">0 stored answers</span></code></pre>
+          </div>
+          <figcaption>
+            점검 범위
+            <span lang="en">Integrity coverage</span>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="price-strip" aria-label="진단 요약">
+        <div class="price-item">
+          <span class="price-label">질문</span>
+          <strong class="price-value">10개</strong>
+        </div>
+        <div class="price-item">
+          <span class="price-label">예상 시간</span>
+          <strong class="price-value">약 2분</strong>
+        </div>
+        <div class="price-item">
+          <span class="price-label">파일 전송</span>
+          <strong class="price-value">없음</strong>
+        </div>
+      </section>
+
+      <section class="section section-tinted" id="assessment">
+        <div class="container">
+          <p class="eyebrow">Spreadsheet Integrity Scorecard</p>
+          <h2 class="section-title">현재 사용하는 실제 워크북 기준으로 답하세요</h2>
+          <p class="section-intro">
+            앞으로 만들 계획이 아니라, 지금 반복 사용하는 파일에서 확인할 수
+            있는 통제에만 ‘예’를 선택하세요.
+          </p>
+
+          <form class="assessment-shell" data-scorecard>
+            <div class="assessment-list">
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 01</span>작업 전에 원본을 별도 보관하고 결과 파일을 새 이름으로 저장합니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q1" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q1" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 02</span>사용자 입력 셀과 계산 수식 셀을 <span class="nowrap">구분할 수 있습니까?</span></legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q2" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q2" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 03</span>숨김 시트, 숨김 행·열과 보호 범위를 목록으로 관리합니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q3" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q3" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 04</span>이름 정의, 병합 셀과 주요 참조 범위의 목적이 문서에 있습니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q4" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q4" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 05</span>외부 링크, 데이터 연결과 매크로 존재 여부를 확인합니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q5" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q5" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 06</span>수식 오류와 오래된 계산 결과를 납품 전에 점검합니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q6" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q6" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 07</span>금액, 비율, 날짜와 측정 단위가 열마다 일관됩니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q7" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q7" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 08</span>수동 덮어쓰기와 예외 입력의 이유를 추적할 수 있습니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q8" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q8" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 09</span>예상 합계와 행·열 수 같은 독립 검산 기준이 있습니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q9" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q9" value="no">아니요</label>
+                </div>
+              </fieldset>
+              <fieldset class="assessment-question">
+                <legend><span class="question-number">질문 10</span>다른 사람이 다시 열어 주요 결과를 확인하는 절차가 있습니까?</legend>
+                <div class="choice-row">
+                  <label class="choice-control"><input type="radio" name="q10" value="yes">예</label>
+                  <label class="choice-control"><input type="radio" name="q10" value="no">아니요</label>
+                </div>
+              </fieldset>
+            </div>
+
+            <aside class="score-summary" aria-labelledby="score-title" aria-live="polite">
+              <div class="score-progress-label">
+                <span id="score-title">응답 진행</span>
+                <span data-score-progress-text>0 / 10</span>
+              </div>
+              <progress class="score-progress-track" value="0" max="10" data-score-progress aria-label="응답 진행">0 / 10</progress>
+              <p class="score-value" data-score-value>0 / 10</p>
+              <p class="score-band" data-score-band>10개 질문이 남았습니다</p>
+              <p class="score-copy" data-score-copy>모든 항목에 답하면 현재 위험 구간과 다음 점검 순서를 보여드립니다.</p>
+              <p class="score-privacy">답변과 워크북은 저장하거나 전송하지 않습니다. 공개 문의에는 고객 파일, 개인정보와 재무 데이터를 올리지 마세요.</p>
+              <div class="score-actions">
+                <button class="action action-secondary" type="submit">현재 결과 확인</button>
+              </div>
+              <div class="score-actions" data-score-actions hidden>
+                <a class="action action-primary" href="./" data-score-primary>추천 행동</a>
+                <a class="action action-secondary" href="./" data-score-secondary>무료 자료</a>
+                <button class="action action-secondary" type="reset">다시 진단</button>
+              </div>
+              <noscript><p class="score-copy">JavaScript를 사용하지 않으면 ‘예’의 개수를 직접 세세요. 0–3점은 즉시 점검, 4–7점은 표준화, 8–10점은 검증 확장 단계입니다.</p></noscript>
+            </aside>
+          </form>
+        </div>
+      </section>
+
+      <section class="section" id="meaning">
+        <div class="container">
+          <p class="eyebrow">점수 해석</p>
+          <h2 class="section-title">낮은 점수부터 원본을 건드리지 않고 확인하세요</h2>
+          <div class="service-list">
+            <article class="service-row">
+              <div><p class="service-kicker">0–3점</p><h3 class="service-name">즉시 구조 감사</h3></div>
+              <p class="service-copy">원본 보존, 숨김 구조, 외부 연결과 오류 신호부터 확인합니다.</p>
+              <div class="service-offer"><span class="service-price">49,000원부터</span></div>
+            </article>
+            <article class="service-row">
+              <div><p class="service-kicker">4–7점</p><h3 class="service-name">점검 표준화</h3></div>
+              <p class="service-copy">읽기 전용 CLI와 체크리스트로 반복 순서를 고정합니다.</p>
+              <div class="service-offer"><span class="service-price">전자책 USD 9</span></div>
+            </article>
+            <article class="service-row">
+              <div><p class="service-kicker">8–10점</p><h3 class="service-name">검증 자동화</h3></div>
+              <p class="service-copy">사전점검과 팀 공통 인수 기준을 <span class="nowrap">운영 전반에 적용합니다.</span></p>
+              <div class="service-offer"><span class="service-price">번들 USD 49</span></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">무료 진단 이후</p>
+            <h2>업로드 전 <span class="nowrap">감사 범위를 정하세요</span></h2>
+            <p>공개 문의에는 원본 워크북, 고객 정보, 계좌와 재무 데이터를 올리지 마세요.</p>
+          </div>
+          <a class="action action-primary" href="#assessment">진단 다시 보기</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p lang="en">Private answers. Read-only first.</p>
+        <a class="text-link" href="./">전체 서비스 보기</a>
+      </div>
+    </footer>
+
+    <script type="module" src="spreadsheet-integrity-scorecard.mjs"></script>
+  </body>
+</html>

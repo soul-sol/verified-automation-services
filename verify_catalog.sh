@@ -29,6 +29,8 @@ for required in \
   github-actions-ci-triage-ebook.html \
   go-cross-architecture-ci-kit.html \
   spreadsheet-preflight-ebook.html \
+  spreadsheet-integrity-scorecard.html \
+  spreadsheet-integrity-scorecard.mjs \
   downloads/github-actions-ci-triage-preview-ko.pdf \
   downloads/spreadsheet-preflight-preview-ko.pdf \
   assets/ci-triage-ebook-spread.webp \
@@ -74,12 +76,18 @@ rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/index.html"
 rg -q 'spreadsheet-preflight-ebook.html' "$ROOT/index.html"
 rg -q 'agents-md-audit-kit.html' "$ROOT/index.html"
 rg -q 'ci-reliability-scorecard.html' "$ROOT/index.html"
+rg -q 'spreadsheet-integrity-scorecard.html' "$ROOT/index.html"
 rg -q 'developer-reliability-bundle.html' "$ROOT/index.html"
 rg -q '10개 질문' "$ROOT/ci-reliability-scorecard.html"
 rg -q 'data-scorecard' "$ROOT/ci-reliability-scorecard.html"
 rg -q '답변은 저장하거나 전송하지 않습니다' \
   "$ROOT/ci-reliability-scorecard.html"
 node "$ROOT/test_scorecard.mjs" >/dev/null
+rg -q '10개 질문' "$ROOT/spreadsheet-integrity-scorecard.html"
+rg -q 'data-scorecard' "$ROOT/spreadsheet-integrity-scorecard.html"
+rg -q '답변과 워크북은 저장하거나 전송하지 않습니다' \
+  "$ROOT/spreadsheet-integrity-scorecard.html"
+node "$ROOT/test_spreadsheet_scorecard.mjs" >/dev/null
 rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
   "$ROOT/github-actions-ci-triage-ebook.html"

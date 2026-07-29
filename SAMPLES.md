@@ -3,9 +3,12 @@
 These small artifacts are free to use and adapt. They are designed to reveal
 whether a problem has a clear, testable scope before anyone requests paid work.
 
-Start with the [10-question CI reliability scorecard](ci-reliability-scorecard.html)
-to check reproducibility, permissions, secrets, cache, logs, ownership, and
-runtime coverage. Answers stay in the browser.
+Start with a browser-only scorecard. Use the
+[spreadsheet integrity scorecard](spreadsheet-integrity-scorecard.html) for
+originals, formulas, hidden structures, external connections, units, and
+control totals. Use the
+[CI reliability scorecard](ci-reliability-scorecard.html) for reproducibility,
+permissions, secrets, cache, logs, ownership, and runtime coverage.
 
 | Sample | Use it when | Paid scope if needed |
 |---|---|---|

@@ -21,6 +21,15 @@ Use one of the public samples before requesting paid work:
 
 ## Featured digital products
 
+### Free Spreadsheet Integrity Scorecard
+
+- Ten yes/no checks for originals, formulas, hidden structures, external
+  links, units, overrides, control totals, and independent review
+- Runs entirely in the browser without uploads, accounts, or stored answers
+- Gives a score-specific path to the free checklist, spreadsheet audit,
+  USD 9 ebook + CLI, or the Developer Reliability Bundle
+- Start here: [run the free scorecard](spreadsheet-integrity-scorecard.html)
+
 ### Free CI Reliability Scorecard
 
 - Ten yes/no checks for reproducibility, permissions, secrets, cache, logs,
