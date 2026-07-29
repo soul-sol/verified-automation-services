@@ -15,6 +15,7 @@ Use one of the public samples before requesting paid work:
 - [GitHub Actions: the first 15 minutes](samples/ci-first-15-minutes.md)
 - [AI agent skill acceptance checklist](samples/agent-skill-acceptance-checklist.md)
 - [Go cross-architecture workflow](samples/go-cross-architecture.yml)
+- [Korean AGENTS.md guide and examples](https://github.com/soul-sol/agents-md-guide-ko)
 
 [Browse all samples and matching service scopes](SAMPLES.md)
 
@@ -66,6 +67,24 @@ paid runner capacity, or a guarantee that every platform will build.
 
 [Ask about the Go CI kit](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BKit%20interest%5D%20Go%20Cross-Architecture%20CI)
 
+### AGENTS.md Audit Kit
+
+- Launch price: **USD 9**
+- Runtime: dependency-free, read-only Python 3.13+ CLI
+- Checks: instruction discovery, required sections, backtick paths, explicit
+  conflicts, and the default 32 KiB file and effective-chain boundary
+- Extras: six role and nested-scope templates, a 15-item adoption checklist,
+  and a Korean team worksheet
+- Free guide: [read the guide and three examples](https://github.com/soul-sol/agents-md-guide-ko)
+- Product details: [review the full scope](agents-md-audit-kit.html)
+
+The tool produces human-readable and JSON reports without executing repository
+commands, modifying files, using telemetry, or uploading repository content.
+Static checks do not guarantee agent performance or universal compatibility.
+The full paid ZIP and auditor source are not published in this repository.
+
+[Ask about the Audit Kit](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BKit%20interest%5D%20AGENTS.md%20Audit%20Kit)
+
 ## Services
 
 ### 1. Spreadsheet Structure Audit
@@ -115,6 +134,7 @@ an untested prompt.
 | Product | Price |
 |---|---:|
 | Spreadsheet Preflight Ebook + CLI | USD 9 |
+| AGENTS.md Audit Kit + templates | USD 9 |
 | GitHub Actions CI Triage Ebook + templates | USD 19 |
 | Open Source Bounty Monitor Kit | USD 19 |
 | Go/Linux Cross-Architecture CI Starter Kit | USD 29 |
@@ -133,6 +153,7 @@ Public work currently includes:
 - a 23-page Korean spreadsheet preflight guide and workbook structure auditor;
 - a 19-page GitHub Actions failure triage guide;
 - verified Linux AMD64, ARM64, and 386 cross-architecture build examples.
+- a read-only AGENTS.md auditor with nine tests and six installable templates.
 
 Pull requests are evidence of implementation work, not proof of reward,
 acceptance, or revenue.

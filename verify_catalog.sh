@@ -22,6 +22,7 @@ for required in \
   README.md \
   DELIVERY.md \
   SAMPLES.md \
+  agents-md-audit-kit.html \
   github-actions-ci-triage-ebook.html \
   go-cross-architecture-ci-kit.html \
   spreadsheet-preflight-ebook.html \
@@ -68,6 +69,7 @@ rg -q 'digital-kit.yml' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
 rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/index.html"
 rg -q 'spreadsheet-preflight-ebook.html' "$ROOT/index.html"
+rg -q 'agents-md-audit-kit.html' "$ROOT/index.html"
 rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
   "$ROOT/github-actions-ci-triage-ebook.html"
@@ -82,6 +84,11 @@ rg -q 'USD 29' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'samples/go-cross-architecture.yml' \
   "$ROOT/go-cross-architecture-ci-kit.html"
 rg -Fq 'Go/Linux Cross-Architecture CI Starter Kit' \
+  "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
+rg -q 'USD 9' "$ROOT/agents-md-audit-kit.html"
+rg -q 'https://github.com/soul-sol/agents-md-guide-ko' \
+  "$ROOT/agents-md-audit-kit.html"
+rg -Fq 'AGENTS.md Audit Kit + templates' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
 
 if rg -n \
@@ -98,17 +105,26 @@ if rg -n \
   exit 1
 fi
 
+if rg -n \
+  'agents-md-audit-kit-v|audit_agents\.py|src/agents_md_audit' \
+  "$ROOT/downloads"; then
+  echo "Paid AGENTS.md Audit Kit files must not be public." >&2
+  exit 1
+fi
+
 if rg -n '—|biz\.lifestep@gmail\.com|skilly12@gmail\.com|vbn1477@gmail\.com' \
   "$ROOT/index.html" "$ROOT/styles.css"; then
   echo "Landing page contains a banned dash or private email." >&2
   exit 1
 fi
 rg -q 'USD 29' "$ROOT/README.md"
+rg -q 'AGENTS.md Audit Kit' "$ROOT/README.md"
 rg -q 'GitHub does not process or escrow payment' "$ROOT/DELIVERY.md"
 rg -q 'spreadsheet-audit.yml' "$ROOT/samples/spreadsheet-preflight-checklist.md"
 rg -q 'ci-triage.yml' "$ROOT/samples/ci-first-15-minutes.md"
 rg -q 'agent-skill.yml' "$ROOT/samples/agent-skill-acceptance-checklist.md"
 rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/SAMPLES.md"
+rg -q 'agents-md-audit-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'go test ./...' "$ROOT/samples/go-cross-architecture.yml"
 
 print "service catalog verification: all checks passed"

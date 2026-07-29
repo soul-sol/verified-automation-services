@@ -11,6 +11,7 @@ body:
       label: Product
       options:
         - Spreadsheet Preflight Ebook + CLI — USD 9
+        - AGENTS.md Audit Kit + templates — USD 9
         - GitHub Actions CI Triage Ebook + templates — USD 19
         - Open Source Bounty Monitor Kit — USD 19
         - Go/Linux Cross-Architecture CI Starter Kit — USD 29
