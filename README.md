@@ -56,6 +56,7 @@ published in this repository.
 - Targets: Linux AMD64, ARM64, and 386 with `CGO_ENABLED=0`
 - Extras: local compile report, optional QEMU runtime smoke, Dockerfile,
   working example, and adoption checklist
+- Free diagnostic CLI: [inspect an `exec format error` locally](https://github.com/soul-sol/go-exec-format-doctor)
 - Free preview: [read the actual compile workflow](samples/go-cross-architecture.yml)
 - Product details: [review the full scope](go-cross-architecture-ci-kit.html)
 
