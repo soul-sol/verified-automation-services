@@ -92,6 +92,7 @@ published in this repository.
 - Extras: local compile report, optional QEMU runtime smoke, Dockerfile,
   working example, and adoption checklist
 - Free diagnostic CLI: [inspect an `exec format error` locally](https://github.com/soul-sol/go-exec-format-doctor)
+- Free troubleshooting guide: [diagnose Docker AMD64 vs ARM64 mismatches](exec-format-error-docker-arm64-fix.html)
 - Free preview: [read the actual compile workflow](samples/go-cross-architecture.yml)
 - Product details: [review the full scope](go-cross-architecture-ci-kit.html)
 

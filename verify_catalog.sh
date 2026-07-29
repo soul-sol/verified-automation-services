@@ -29,6 +29,7 @@ for required in \
   ci-reliability-scorecard.html \
   ci-reliability-scorecard.mjs \
   developer-reliability-bundle.html \
+  exec-format-error-docker-arm64-fix.html \
   github-actions-ci-triage-ebook.html \
   go-cross-architecture-ci-kit.html \
   spreadsheet-preflight-ebook.html \
@@ -57,7 +58,7 @@ sitemap_urls=(
     --xpath '//*[local-name()="loc"]/text()' \
     "$ROOT/sitemap.xml" 2>/dev/null)}"
 )
-[[ "${#sitemap_urls[@]}" -eq 8 ]]
+[[ "${#sitemap_urls[@]}" -eq 9 ]]
 [[ "${sitemap_urls[(Ie)https://soul-sol.github.io/verified-automation-services/showcase.html]}" -eq 0 ]]
 
 indexable_pages=(
@@ -65,6 +66,7 @@ indexable_pages=(
   agents-md-audit-kit.html
   ci-reliability-scorecard.html
   developer-reliability-bundle.html
+  exec-format-error-docker-arm64-fix.html
   github-actions-ci-triage-ebook.html
   go-cross-architecture-ci-kit.html
   spreadsheet-integrity-scorecard.html
@@ -117,6 +119,12 @@ rg -q 'agents-md-audit-kit.html' "$ROOT/index.html"
 rg -q 'ci-reliability-scorecard.html' "$ROOT/index.html"
 rg -q 'spreadsheet-integrity-scorecard.html' "$ROOT/index.html"
 rg -q 'developer-reliability-bundle.html' "$ROOT/index.html"
+rg -q 'exec-format-error-docker-arm64-fix.html' "$ROOT/index.html"
+rg -q 'go-exec-format-doctor' "$ROOT/exec-format-error-docker-arm64-fix.html"
+rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/exec-format-error-docker-arm64-fix.html"
+rg -q '"@type": "BlogPosting"' "$ROOT/exec-format-error-docker-arm64-fix.html"
+rg -q 'docs.docker.com/build/building/multi-platform' \
+  "$ROOT/exec-format-error-docker-arm64-fix.html"
 rg -q '10개 질문' "$ROOT/ci-reliability-scorecard.html"
 rg -q 'data-scorecard' "$ROOT/ci-reliability-scorecard.html"
 rg -q '답변은 저장하거나 전송하지 않습니다' \
@@ -187,6 +195,7 @@ rg -q 'spreadsheet-audit.yml' "$ROOT/samples/spreadsheet-preflight-checklist.md"
 rg -q 'ci-triage.yml' "$ROOT/samples/ci-first-15-minutes.md"
 rg -q 'agent-skill.yml' "$ROOT/samples/agent-skill-acceptance-checklist.md"
 rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/SAMPLES.md"
+rg -q 'exec-format-error-docker-arm64-fix.html' "$ROOT/SAMPLES.md"
 rg -q 'agents-md-audit-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'go test ./...' "$ROOT/samples/go-cross-architecture.yml"
 

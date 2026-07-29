@@ -205,6 +205,20 @@ All spacing derives from 4px.
   caption, and does not encode PASS only through color.
 - **Motion**: none.
 
+### Troubleshooting Article
+
+- **Structure**: answer-first article header, compact fact strip, anchored
+  contents, diagnosis steps, decision table, code blocks, source list, FAQ,
+  and one transparent product conversion panel.
+- **Variants**: technical guide only.
+- **Spacing**: article measure is 68 characters; major sections use
+  `--space-16`, while code and callout surfaces use `--space-6`.
+- **States**: static content with documented link hover and focus states;
+  code blocks scroll locally on narrow screens.
+- **Accessibility**: one H1, ordered heading levels, captioned tables,
+  descriptive links, semantic `time`, and no meaning conveyed by color alone.
+- **Motion**: none beyond the existing action-link feedback.
+
 ### Assessment Question
 
 - **Structure**: numbered fieldset with one plain-language reliability check

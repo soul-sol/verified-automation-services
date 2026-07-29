@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static troubleshooting guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Diagnose and fix Docker exec format errors caused by AMD64, ARM64, OS, script, or CGO mismatches without running an unknown binary."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Docker exec format error: diagnose AMD64 vs ARM64 safely">
+    <meta
+      property="og:description"
+      content="An answer-first checklist for binary, image, script, and CGO architecture mismatches."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/exec-format-error-docker-arm64-fix.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/exec-format-error-docker-arm64-fix.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Docker exec format error: diagnose AMD64 vs ARM64 safely</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Docker exec format error: diagnose AMD64 vs ARM64 safely",
+        "description": "Diagnose and fix Docker exec format errors caused by AMD64, ARM64, OS, script, or CGO mismatches without running an unknown binary.",
+        "datePublished": "2026-07-30",
+        "dateModified": "2026-07-30",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/exec-format-error-docker-arm64-fix.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#diagnose">Diagnose</a>
+          <a class="nav-link" href="#fixes">Fixes</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="go-cross-architecture-ci-kit.html"
+          >
+            CI kit, USD 29
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Docker and Go troubleshooting guide</p>
+            <h1>Docker exec format error: diagnose AMD64 vs ARM64 safely</h1>
+            <p class="article-dek">
+              The error usually means the kernel cannot interpret the file it
+              was asked to start. Check the host, image, binary, and script
+              headers before rebuilding anything.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-07-30">July 30, 2026</time></span>
+              <span>8 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#diagnose">Diagnose the mismatch</a></li>
+              <li><a href="#fixes">Apply the right fix</a></li>
+              <li><a href="#prevention">Prevent a repeat</a></li>
+              <li><a href="#faq">Common questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                A Docker <span class="inline-code">exec format error</span>
+                most often means an AMD64 executable is being started on an
+                ARM64 host, or the reverse. It can also mean the file targets
+                the wrong operating system, has a missing or malformed script
+                interpreter line, or depends on a CGO runtime that is absent.
+              </p>
+              <p>
+                Do not run an unknown binary just to identify it. Inspect its
+                file header, compare it with the host and image platform, then
+                rebuild only the mismatched layer.
+              </p>
+            </section>
+
+            <section id="diagnose">
+              <h2>Diagnose the mismatch in four checks</h2>
+
+              <h3>1. Identify the host architecture</h3>
+              <pre class="article-code"><code>uname -m
+
+# Common results:
+# x86_64  = AMD64
+# aarch64 = ARM64</code></pre>
+              <p>
+                Docker containers share the host kernel. Executable code still
+                has to be compatible with the host architecture, unless an
+                emulator has been installed and configured.
+              </p>
+
+              <h3>2. Inspect the image platforms</h3>
+              <pre class="article-code"><code>docker buildx imagetools inspect IMAGE:TAG
+
+# For a local image:
+docker image inspect IMAGE:TAG \
+  --format '&#123;&#123;.Os&#125;&#125;/&#123;&#123;.Architecture&#125;&#125;'</code></pre>
+              <p>
+                A multi-platform tag should expose a manifest for each
+                supported target, such as
+                <span class="inline-code">linux/amd64</span> and
+                <span class="inline-code">linux/arm64</span>. A single-platform
+                tag can work on one machine and fail on another.
+              </p>
+
+              <h3>3. Inspect the executable without starting it</h3>
+              <pre class="article-code"><code>file ./my-service
+
+# Or install the header-only diagnostic:
+go install github.com/soul-sol/go-exec-format-doctor/cmd/go-exec-format-doctor@latest
+go-exec-format-doctor ./my-service</code></pre>
+              <p>
+                The free
+                <a href="https://github.com/soul-sol/go-exec-format-doctor">
+                  go-exec-format-doctor
+                </a>
+                reads file headers locally and reports the detected format,
+                operating system, and architecture. It does not execute the
+                inspected file.
+              </p>
+
+              <h3>4. Check whether the failing entrypoint is a script</h3>
+              <pre class="article-code"><code>head -n 1 ./entrypoint.sh
+file ./entrypoint.sh
+
+# A valid first line names an interpreter:
+#!/bin/sh</code></pre>
+              <p>
+                A missing interpreter, Windows CRLF line endings, or a path
+                that does not exist inside the image can surface as the same
+                error. If the entrypoint is a script, fix that layer before
+                rebuilding a compiled binary.
+              </p>
+
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Match the evidence to the smallest useful fix</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Evidence</th>
+                      <th scope="col">Likely cause</th>
+                      <th scope="col">Next action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Host is ARM64, binary is AMD64</td>
+                      <td>Binary architecture mismatch</td>
+                      <td>Rebuild with <span class="inline-code">GOARCH=arm64</span></td>
+                    </tr>
+                    <tr>
+                      <td>Image tag lists only AMD64</td>
+                      <td>Missing ARM64 manifest</td>
+                      <td>Publish a multi-platform image</td>
+                    </tr>
+                    <tr>
+                      <td>Binary format is PE32+</td>
+                      <td>Windows binary in Linux</td>
+                      <td>Rebuild with <span class="inline-code">GOOS=linux</span></td>
+                    </tr>
+                    <tr>
+                      <td>Entrypoint starts with text or CRLF</td>
+                      <td>Script header or line-ending problem</td>
+                      <td>Fix the shebang and convert to LF</td>
+                    </tr>
+                    <tr>
+                      <td>Architecture matches, loader is missing</td>
+                      <td>CGO or dynamic runtime mismatch</td>
+                      <td>Supply target libraries or use a supported static build</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="fixes">
+              <h2>Apply the fix that matches the evidence</h2>
+
+              <h3>Build the Go binary for the target platform</h3>
+              <pre class="article-code"><code># Linux on Intel or AMD hosts
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+  go build -o dist/my-service-linux-amd64 ./cmd/my-service
+
+# Linux on ARM hosts
+GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
+  go build -o dist/my-service-linux-arm64 ./cmd/my-service</code></pre>
+              <p>
+                These commands are appropriate only when the program supports
+                a pure-Go build. Setting
+                <span class="inline-code">CGO_ENABLED=0</span> is not a
+                universal fix. A program that needs CGO must use a target
+                compiler and compatible target libraries.
+              </p>
+
+              <h3>Publish a Docker image for AMD64 and ARM64</h3>
+              <pre class="article-code"><code>docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag REGISTRY/IMAGE:TAG \
+  --push .</code></pre>
+              <p>
+                The pushed tag becomes a manifest list. Docker can then select
+                the compatible image variant for a supported host. Inspect the
+                published tag after the build rather than assuming both
+                variants were uploaded.
+              </p>
+
+              <h3>Fix a script entrypoint</h3>
+              <pre class="article-code"><code># Convert CRLF to LF without changing the script logic
+sed -i.bak $'s/\r$//' entrypoint.sh
+
+# Confirm the interpreter exists inside the image
+docker run --rm --entrypoint /bin/sh IMAGE:TAG \
+  -c 'command -v sh'</code></pre>
+              <p>
+                If the image is untrusted, do not run it for diagnosis. Inspect
+                the image configuration and extracted files in an isolated
+                analysis environment instead.
+              </p>
+
+              <aside class="article-callout" aria-labelledby="need-kit-title">
+                <h3 id="need-kit-title">Need the checks in CI?</h3>
+                <p>
+                  The
+                  <a href="go-cross-architecture-ci-kit.html">
+                    Go/Linux Cross-Architecture CI Starter Kit
+                  </a>
+                  includes copy-ready compile workflows, optional QEMU runtime
+                  smoke checks, local scripts, and an auditable TSV report for
+                  AMD64, ARM64, and 386.
+                </p>
+                <p>
+                  The launch price is USD 29. The product page shows the exact
+                  included and excluded scope before you open a purchase
+                  inquiry.
+                </p>
+              </aside>
+            </section>
+
+            <section id="prevention">
+              <h2>Prevent the same failure in CI</h2>
+              <ol>
+                <li>
+                  Declare supported <span class="inline-code">GOOS</span> and
+                  <span class="inline-code">GOARCH</span> pairs in a build
+                  matrix.
+                </li>
+                <li>
+                  Compile every supported pair on each change, even when only
+                  one binary is released.
+                </li>
+                <li>
+                  Run selected outputs under a compatible runner or explicit
+                  emulator. A successful compile does not prove the program
+                  starts.
+                </li>
+                <li>
+                  Inspect the final Docker manifest and record the result as a
+                  build artifact.
+                </li>
+                <li>
+                  Keep CGO targets separate because their compiler, libc, and
+                  runtime requirements differ from pure-Go targets.
+                </li>
+              </ol>
+            </section>
+
+            <section id="faq">
+              <h2>Common questions</h2>
+
+              <h3>Why does the image work on my laptop but fail in production?</h3>
+              <p>
+                The two machines may use different CPU architectures. Apple
+                Silicon is ARM64, while many production nodes are AMD64. The
+                reverse also occurs on ARM cloud instances. Compare both
+                platforms and inspect the image manifest.
+              </p>
+
+              <h3>Does Docker automatically emulate another architecture?</h3>
+              <p>
+                Not in every environment. Docker Desktop bundles convenient
+                emulation for common workflows, but a Linux server may not
+                have the required QEMU and binfmt configuration. Native images
+                are usually the more predictable production choice.
+              </p>
+
+              <h3>Will CGO_ENABLED=0 always solve the error?</h3>
+              <p>
+                No. It produces a pure-Go build only when the application and
+                its dependencies support one. Software that requires C code
+                needs a target-aware compiler and compatible runtime
+                libraries.
+              </p>
+
+              <h3>Can this error be caused by permissions?</h3>
+              <p>
+                A non-executable file usually produces a permission error
+                instead. Still verify the executable bit after confirming the
+                format, operating system, architecture, and script header.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://docs.docker.com/build/building/multi-platform/">
+                    Docker Docs: Multi-platform builds
+                  </a>
+                </li>
+                <li>
+                  <a href="https://go.dev/doc/install/source">
+                    The Go Programming Language: Installing Go from source
+                  </a>
+                </li>
+                <li>
+                  <a href="https://go.dev/wiki/WindowsCrossCompiling">
+                    Go Wiki: Building Windows Go programs on Linux
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">From diagnosis to repeatable CI</p>
+            <h2>Compile and check every supported target</h2>
+            <p>
+              Review the free workflow first, then open a public inquiry only
+              if the full USD 29 kit matches your project.
+            </p>
+          </div>
+          <a class="action action-primary" href="go-cross-architecture-ci-kit.html">
+            Review the CI kit
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

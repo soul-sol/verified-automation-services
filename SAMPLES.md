@@ -18,6 +18,7 @@ permissions, secrets, cache, logs, ownership, and runtime coverage.
 | [Go cross-architecture workflow](samples/go-cross-architecture.yml) | A Go project needs compile and test coverage across Linux architectures | [Review the full starter kit](go-cross-architecture-ci-kit.html) |
 | [Korean AGENTS.md guide and examples](https://github.com/soul-sol/agents-md-guide-ko) | A repository needs concrete root and nested agent instructions | [Review the audit tool and template kit](agents-md-audit-kit.html) |
 | [`exec format error` doctor](https://github.com/soul-sol/go-exec-format-doctor) | A local binary may target the wrong OS or architecture | [Review the full starter kit](go-cross-architecture-ci-kit.html) |
+| [Docker `exec format error` guide](exec-format-error-docker-arm64-fix.html) | A container works on one architecture but fails on another | [Run the safe diagnosis, then review the CI kit](go-cross-architecture-ci-kit.html) |
 
 The samples are not a promise that every repository or file can be repaired.
 The request forms create public inquiries, not orders or payments. Never put
