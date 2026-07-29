@@ -23,6 +23,7 @@ for required in \
   DELIVERY.md \
   SAMPLES.md \
   github-actions-ci-triage-ebook.html \
+  go-cross-architecture-ci-kit.html \
   spreadsheet-preflight-ebook.html \
   downloads/github-actions-ci-triage-preview-ko.pdf \
   downloads/spreadsheet-preflight-preview-ko.pdf \
@@ -62,8 +63,10 @@ rg -q 'spreadsheet-audit.yml' "$ROOT/index.html"
 rg -q 'ci-triage.yml' "$ROOT/index.html"
 rg -q 'agent-skill.yml' "$ROOT/index.html"
 rg -q 'digital-kit.yml' "$ROOT/github-actions-ci-triage-ebook.html"
+rg -q 'digital-kit.yml' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'digital-kit.yml' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
+rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/index.html"
 rg -q 'spreadsheet-preflight-ebook.html' "$ROOT/index.html"
 rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
@@ -75,11 +78,23 @@ rg -q 'downloads/spreadsheet-preflight-preview-ko.pdf' \
   "$ROOT/spreadsheet-preflight-ebook.html"
 rg -Fq 'Spreadsheet Preflight Ebook + CLI' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
+rg -q 'USD 29' "$ROOT/go-cross-architecture-ci-kit.html"
+rg -q 'samples/go-cross-architecture.yml' \
+  "$ROOT/go-cross-architecture-ci-kit.html"
+rg -Fq 'Go/Linux Cross-Architecture CI Starter Kit' \
+  "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
 
 if rg -n \
   'spreadsheet-preflight-bundle|audit_workbook\.py|PRODUCT_MANIFEST\.md' \
   "$ROOT/downloads"; then
   echo "Paid spreadsheet product files must not be public." >&2
+  exit 1
+fi
+
+if rg -n \
+  'go-linux-cross-arch-ci-starter-kit|runtime_matrix\.sh|cross_compile\.sh' \
+  "$ROOT/downloads"; then
+  echo "Paid Go CI product files must not be public." >&2
   exit 1
 fi
 
@@ -93,7 +108,7 @@ rg -q 'GitHub does not process or escrow payment' "$ROOT/DELIVERY.md"
 rg -q 'spreadsheet-audit.yml' "$ROOT/samples/spreadsheet-preflight-checklist.md"
 rg -q 'ci-triage.yml' "$ROOT/samples/ci-first-15-minutes.md"
 rg -q 'agent-skill.yml' "$ROOT/samples/agent-skill-acceptance-checklist.md"
-rg -q 'digital-kit.yml' "$ROOT/SAMPLES.md"
+rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'go test ./...' "$ROOT/samples/go-cross-architecture.yml"
 
 print "service catalog verification: all checks passed"

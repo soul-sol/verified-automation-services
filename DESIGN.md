@@ -53,6 +53,7 @@ Design dials: `DESIGN_VARIANCE 4`, `MOTION_INTENSITY 3`,
 | Accent/primary | `--accent-primary` | `#9fe870` | `#a8ef7c` | Primary actions only |
 | Accent/hover | `--accent-hover` | `#b7f58f` | `#c0f69d` | Hover feedback |
 | Accent/ink | `--accent-ink` | `#163300` | `#163300` | Text on accent |
+| Code/accent | `--code-accent` | `#316b12` | `#a8ef7c` | Verified command and PASS signal |
 | Focus | `--focus-ring` | `#163300` | `#d3ffb8` | Keyboard focus |
 | Status/warning | `--status-warning` | `#735c00` | `#ffe169` | Privacy notice text |
 | Status/error | `--status-error` | `#9f2525` | `#ffb4ab` | Error showcase only |
@@ -192,6 +193,17 @@ All spacing derives from 4px.
 - **States**: anchor default, hover, active, focus-visible.
 - **Accessibility**: skip link precedes it; single-line desktop navigation.
 - **Motion**: sticky surface uses no scroll listener.
+
+### Code Artifact Display
+
+- **Structure**: inverse hero tray containing two actual code-output windows,
+  each with a filename label and preformatted content.
+- **Variants**: workflow source and compile report.
+- **Spacing**: `--space-4` tray, `--space-5` code body.
+- **States**: static; horizontal code overflow remains locally scrollable.
+- **Accessibility**: source remains selectable text, has a descriptive figure
+  caption, and does not encode PASS only through color.
+- **Motion**: none.
 
 ## 6. Motion & Interaction
 

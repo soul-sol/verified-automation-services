@@ -18,7 +18,7 @@ Use one of the public samples before requesting paid work:
 
 [Browse all samples and matching service scopes](SAMPLES.md)
 
-## Featured ebooks
+## Featured digital products
 
 ### Spreadsheet Preflight Ebook + CLI
 
@@ -49,6 +49,21 @@ and external-state paths before a patch is attempted. The full paid ZIP is not
 published in this repository.
 
 [Ask about the ebook](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BEbook%20interest%5D%20GitHub%20Actions%20CI%20Triage)
+
+### Go/Linux Cross-Architecture CI Starter Kit
+
+- Launch price: **USD 29**
+- Targets: Linux AMD64, ARM64, and 386 with `CGO_ENABLED=0`
+- Extras: local compile report, optional QEMU runtime smoke, Dockerfile,
+  working example, and adoption checklist
+- Free preview: [read the actual compile workflow](samples/go-cross-architecture.yml)
+- Product details: [review the full scope](go-cross-architecture-ci-kit.html)
+
+The kit passed ten self-tests and records each target result in a TSV report.
+It does not include a CGO cross-toolchain, private-repository installation,
+paid runner capacity, or a guarantee that every platform will build.
+
+[Ask about the Go CI kit](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BKit%20interest%5D%20Go%20Cross-Architecture%20CI)
 
 ## Services
 

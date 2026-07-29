@@ -1,4 +1,4 @@
-/* SIZE_OK: shared tokens, components, states, and responsive rules for three static public pages. */
+/* SIZE_OK: shared tokens, components, states, and responsive rules for four static public pages. */
 :root {
   color-scheme: light dark;
   --surface-primary: #fbfcf8;
@@ -13,6 +13,7 @@
   --accent-primary: #9fe870;
   --accent-hover: #b7f58f;
   --accent-ink: #163300;
+  --code-accent: #316b12;
   --focus-ring: #163300;
   --status-warning: #735c00;
   --status-error: #9f2525;
@@ -47,6 +48,7 @@
     --border-strong: #90998a;
     --accent-primary: #a8ef7c;
     --accent-hover: #c0f69d;
+    --code-accent: #a8ef7c;
     --focus-ring: #d3ffb8;
     --status-warning: #ffe169;
     --status-error: #ffb4ab;
@@ -373,6 +375,58 @@ a {
   padding: var(--space-3) var(--space-4);
   color: var(--text-secondary);
   font-size: 0.75rem;
+}
+
+.code-showcase {
+  padding: var(--space-4);
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+}
+
+.code-window {
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-panel);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.code-window + .code-window {
+  margin-top: var(--space-3);
+}
+
+.code-window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.code-window pre {
+  max-width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  padding: var(--space-5);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.code-accent {
+  color: var(--code-accent);
+  font-weight: 800;
+}
+
+.code-showcase figcaption {
+  color: var(--text-inverse);
 }
 
 .price-strip {
