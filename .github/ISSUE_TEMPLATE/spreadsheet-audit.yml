@@ -50,4 +50,3 @@ body:
       options:
         - label: I have not included credentials, private files, personal data, or proprietary workbook content.
           required: true
-

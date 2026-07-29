@@ -48,4 +48,3 @@ body:
       options:
         - label: All examples are synthetic or public and contain no credentials or private business data.
           required: true
-

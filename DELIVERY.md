@@ -44,4 +44,3 @@ Every completed technical engagement includes the closest applicable evidence:
 - changed-file summary;
 - limitations and remaining external blockers;
 - rollback or source-preservation instructions where relevant.
-

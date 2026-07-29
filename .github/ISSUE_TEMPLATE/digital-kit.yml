@@ -40,4 +40,3 @@ body:
       options:
         - label: I understand this public issue is not an order or payment and compatibility will be confirmed first.
           required: true
-

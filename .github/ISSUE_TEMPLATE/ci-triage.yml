@@ -53,4 +53,3 @@ body:
           required: true
         - label: I have not posted tokens, secrets, private runner details, or customer data.
           required: true
-
