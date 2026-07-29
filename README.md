@@ -18,6 +18,22 @@ Use one of the public samples before requesting paid work:
 
 [Browse all samples and matching service scopes](SAMPLES.md)
 
+## Featured ebook
+
+### GitHub Actions CI Failure Triage Ebook
+
+- Launch price: **USD 19**
+- Format: 19-page Korean PDF
+- Extras: incident report template and 12-item triage checklist
+- Free preview: [read the first 6 pages](downloads/github-actions-ci-triage-preview-ko.pdf)
+- Product details: [review the full scope](github-actions-ci-triage-ebook.html)
+
+The ebook classifies failures into code, workflow or runner, account-owner,
+and external-state paths before a patch is attempted. The full paid ZIP is not
+published in this repository.
+
+[Ask about the ebook](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BEbook%20interest%5D%20GitHub%20Actions%20CI%20Triage)
+
 ## Services
 
 ### 1. Spreadsheet Structure Audit
@@ -67,7 +83,7 @@ an untested prompt.
 | Product | Price |
 |---|---:|
 | Spreadsheet Integrity Audit Kit | USD 9 |
-| GitHub Actions CI Triage Kit | USD 19 |
+| GitHub Actions CI Triage Ebook + templates | USD 19 |
 | Open Source Bounty Monitor Kit | USD 19 |
 | Go/Linux Cross-Architecture CI Starter Kit | USD 29 |
 

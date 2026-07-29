@@ -1,6 +1,6 @@
-name: Technical kit purchase interest
-description: Ask about a ready-to-download technical kit.
-title: "[Kit interest] "
+name: Digital product purchase interest
+description: Ask about a ready-to-download ebook or technical kit.
+title: "[Digital product interest] "
 labels:
   - inquiry
   - digital-kit
@@ -11,7 +11,7 @@ body:
       label: Product
       options:
         - Spreadsheet Integrity Audit Kit — USD 9
-        - GitHub Actions CI Triage Kit — USD 19
+        - GitHub Actions CI Triage Ebook + templates — USD 19
         - Open Source Bounty Monitor Kit — USD 19
         - Go/Linux Cross-Architecture CI Starter Kit — USD 29
     validations:

@@ -22,6 +22,9 @@ for required in \
   README.md \
   DELIVERY.md \
   SAMPLES.md \
+  github-actions-ci-triage-ebook.html \
+  downloads/github-actions-ci-triage-preview-ko.pdf \
+  assets/ci-triage-ebook-spread.webp \
   samples/spreadsheet-preflight-checklist.md \
   samples/ci-first-15-minutes.md \
   samples/agent-skill-acceptance-checklist.md \
@@ -56,6 +59,12 @@ rg -q 'spreadsheet-audit.yml' "$ROOT/index.html"
 rg -q 'ci-triage.yml' "$ROOT/index.html"
 rg -q 'agent-skill.yml' "$ROOT/index.html"
 rg -q 'digital-kit.yml' "$ROOT/index.html"
+rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
+rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
+rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
+  "$ROOT/github-actions-ci-triage-ebook.html"
+rg -Fq 'GitHub Actions CI Triage Ebook + templates' \
+  "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
 
 if rg -n '—|biz\.lifestep@gmail\.com|skilly12@gmail\.com|vbn1477@gmail\.com' \
   "$ROOT/index.html" "$ROOT/styles.css"; then

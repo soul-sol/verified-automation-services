@@ -1,4 +1,4 @@
-/* SIZE_OK: shared tokens, components, states, and responsive rules for two static audit pages. */
+/* SIZE_OK: shared tokens, components, states, and responsive rules for three static public pages. */
 :root {
   color-scheme: light dark;
   --surface-primary: #fbfcf8;
@@ -110,7 +110,7 @@ a {
   color: var(--accent-ink);
   font-weight: 800;
   transform: translateY(-160%);
-  transition: transform var(--transition-standard);
+  transition: none;
 }
 
 .skip-link:focus {
@@ -592,8 +592,10 @@ a {
 .journey {
   display: grid;
   margin-top: var(--space-12);
+  padding: 0;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-8);
+  list-style: none;
 }
 
 .journey-item {
