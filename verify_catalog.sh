@@ -25,6 +25,7 @@ for required in \
   robots.txt \
   sitemap.xml \
   checkout-links.js \
+  verify_checkout.js \
   c5b90a7f66e512329c156c654a6e0b79.txt \
   agents-md-audit-kit.html \
   ci-reliability-scorecard.html \
@@ -122,57 +123,9 @@ rg -q 'digital-kit.yml' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'digital-kit.yml' "$ROOT/codex-agents-operations-handbook.html"
 rg -q 'digital-kit.yml' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'digital-kit.yml' "$ROOT/spreadsheet-preflight-ebook.html"
-checkout_pages=(
-  agents-md-audit-kit.html
-  codex-agents-operations-handbook.html
-  developer-reliability-bundle.html
-  github-actions-ci-triage-ebook.html
-  go-cross-architecture-ci-kit.html
-  spreadsheet-preflight-ebook.html
-)
-for page in "${checkout_pages[@]}"; do
-  [[ "$(rg -c 'data-checkout-product=' "$ROOT/$page")" -eq 3 ]]
-  [[ "$(rg -c 'src=\"checkout-links.js\"' "$ROOT/$page")" -eq 1 ]]
-  rg -q 'github.com/soul-sol/verified-automation-services/issues/new' \
-    "$ROOT/$page"
-done
 node --check "$ROOT/checkout-links.js"
-node - "$ROOT/checkout-links.js" <<'NODE'
-const assert = require("node:assert/strict");
-const {
-  activateCheckoutLink,
-  approvedCheckoutUrl,
-  checkoutLinks,
-} = require(process.argv[2]);
-
-assert.equal(approvedCheckoutUrl(null), null);
-assert.equal(approvedCheckoutUrl("http://payhip.com/example"), null);
-assert.equal(approvedCheckoutUrl("https://payhip.com.evil.example/item"), null);
-assert.equal(
-  approvedCheckoutUrl("https://payhip.com/b/example"),
-  "https://payhip.com/b/example",
-);
-assert.ok(Object.values(checkoutLinks).every((value) => value === null));
-
-const fallback = {
-  dataset: {
-    checkoutLabel: "전자책 바로 구매",
-  },
-  href: "https://github.com/example/inquiry",
-  textContent: "구매 문의",
-};
-assert.equal(activateCheckoutLink(fallback, null), false);
-assert.equal(fallback.href, "https://github.com/example/inquiry");
-assert.equal(fallback.textContent, "구매 문의");
-
-assert.equal(
-  activateCheckoutLink(fallback, "https://payhip.com/b/example"),
-  true,
-);
-assert.equal(fallback.href, "https://payhip.com/b/example");
-assert.equal(fallback.textContent, "전자책 바로 구매");
-assert.equal(fallback.dataset.checkoutActive, "true");
-NODE
+node --check "$ROOT/verify_checkout.js"
+node "$ROOT/verify_checkout.js" "$ROOT"
 rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
 rg -q 'codex-agents-operations-handbook.html' "$ROOT/index.html"
 rg -q 'codex-agents-md-loading-troubleshooting.html' "$ROOT/index.html"
