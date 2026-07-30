@@ -88,6 +88,20 @@ published in this repository.
 Free troubleshooting guide:
 [prove whether GitHub Actions exit code 137 is OOM](github-actions-exit-code-137-oom-fix.html).
 
+### Codex AGENTS.md Operations Handbook
+
+- Price: USD 19 launch price
+- Format: 16-page Korean PDF
+- Extras: operations checklist and persistence audit template
+- Free preview: [read the first 6 pages](downloads/codex-agents-operations-preview-ko.pdf)
+- Product details: [review the full scope](codex-agents-operations-handbook.html)
+
+The handbook covers instruction hierarchy, loading limits, fresh-process
+persistence checks, fail-closed external-model gates, and background pipeline
+recovery. The full paid ZIP is not published in this repository.
+
+[Ask about the handbook](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BEbook%20interest%5D%20Codex%20AGENTS.md%20Operations)
+
 ### Go/Linux Cross-Architecture CI Starter Kit
 
 - Launch price: **USD 29**

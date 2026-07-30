@@ -28,6 +28,7 @@ for required in \
   agents-md-audit-kit.html \
   ci-reliability-scorecard.html \
   ci-reliability-scorecard.mjs \
+  codex-agents-operations-handbook.html \
   developer-reliability-bundle.html \
   exec-format-error-docker-arm64-fix.html \
   github-actions-ci-triage-ebook.html \
@@ -37,7 +38,9 @@ for required in \
   spreadsheet-integrity-scorecard.html \
   spreadsheet-integrity-scorecard.mjs \
   downloads/github-actions-ci-triage-preview-ko.pdf \
+  downloads/codex-agents-operations-preview-ko.pdf \
   downloads/spreadsheet-preflight-preview-ko.pdf \
+  assets/codex-agents-operations-spread.webp \
   assets/ci-triage-ebook-spread.webp \
   assets/spreadsheet-preflight-ebook-spread.webp \
   samples/spreadsheet-preflight-checklist.md \
@@ -59,13 +62,14 @@ sitemap_urls=(
     --xpath '//*[local-name()="loc"]/text()' \
     "$ROOT/sitemap.xml" 2>/dev/null)}"
 )
-[[ "${#sitemap_urls[@]}" -eq 10 ]]
+[[ "${#sitemap_urls[@]}" -eq 11 ]]
 [[ "${sitemap_urls[(Ie)https://soul-sol.github.io/verified-automation-services/showcase.html]}" -eq 0 ]]
 
 indexable_pages=(
   index.html
   agents-md-audit-kit.html
   ci-reliability-scorecard.html
+  codex-agents-operations-handbook.html
   developer-reliability-bundle.html
   exec-format-error-docker-arm64-fix.html
   github-actions-ci-triage-ebook.html
@@ -112,9 +116,11 @@ rg -q 'spreadsheet-audit.yml' "$ROOT/index.html"
 rg -q 'ci-triage.yml' "$ROOT/index.html"
 rg -q 'agent-skill.yml' "$ROOT/index.html"
 rg -q 'digital-kit.yml' "$ROOT/github-actions-ci-triage-ebook.html"
+rg -q 'digital-kit.yml' "$ROOT/codex-agents-operations-handbook.html"
 rg -q 'digital-kit.yml' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'digital-kit.yml' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
+rg -q 'codex-agents-operations-handbook.html' "$ROOT/index.html"
 rg -q 'github-actions-exit-code-137-oom-fix.html' "$ROOT/index.html"
 rg -q 'State.OOMKilled' "$ROOT/github-actions-exit-code-137-oom-fix.html"
 rg -q 'memory.events' "$ROOT/github-actions-exit-code-137-oom-fix.html"
@@ -150,6 +156,11 @@ rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
   "$ROOT/github-actions-ci-triage-ebook.html"
 rg -Fq 'GitHub Actions CI Triage Ebook + templates' \
+  "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
+rg -q 'USD 19' "$ROOT/codex-agents-operations-handbook.html"
+rg -q 'downloads/codex-agents-operations-preview-ko.pdf' \
+  "$ROOT/codex-agents-operations-handbook.html"
+rg -Fq 'Codex AGENTS.md Operations Handbook + templates' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
 rg -q 'USD 9' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'downloads/spreadsheet-preflight-preview-ko.pdf' \
