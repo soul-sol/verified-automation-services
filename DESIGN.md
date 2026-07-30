@@ -131,7 +131,9 @@ All spacing derives from 4px.
 - **Variants**: primary accent, secondary outline, text link.
 - **Spacing**: minimum 48px height, `--space-4` horizontal minimum.
 - **States**: default, hover, active, focus-visible, visited, disabled
-  showcase.
+  showcase, and checkout-ready. Checkout-ready changes only the destination
+  and action label; all visual tokens and fallback inquiry behavior remain the
+  same.
 - **Accessibility**: descriptive text, 44px minimum target, 3px focus ring.
 - **Motion**: 160ms transform and color only; active scales to 0.98.
 

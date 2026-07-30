@@ -7,6 +7,14 @@ Every engagement starts with a written scope and acceptance cases. I do not
 claim revenue, awards, or customer results that have not been independently
 verified.
 
+## Checkout activation
+
+Paid product pages use `checkout-links.js` as one public, non-secret source of
+truth. Until an approved HTTPS checkout URL is configured, every CTA keeps its
+GitHub inquiry fallback. Adding a Payhip, Ko-fi, PayPal, or Gumroad product URL
+for one product switches only that product's primary CTAs to direct purchase;
+invalid protocols and unapproved hosts fail closed.
+
 ## Start with a free sample
 
 Use one of the public samples before requesting paid work:
