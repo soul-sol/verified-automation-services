@@ -1366,6 +1366,60 @@ a {
   .article-callout {
     padding: var(--space-5);
   }
+
+  .decision-table-wrap {
+    overflow: visible;
+  }
+
+  .decision-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .decision-table caption {
+    display: block;
+    width: 100%;
+  }
+
+  .decision-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .decision-table tbody,
+  .decision-table tr,
+  .decision-table td {
+    display: block;
+  }
+
+  .decision-table tr {
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .decision-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .decision-table td {
+    display: grid;
+    grid-template-columns: minmax(5.75rem, 0.8fr) minmax(0, 1.4fr);
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 0;
+  }
+
+  .decision-table td::before {
+    color: var(--text-secondary);
+    content: attr(data-label);
+    font-size: 0.8125rem;
+    font-weight: 850;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

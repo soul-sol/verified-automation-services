@@ -102,6 +102,9 @@ recovery. The full paid ZIP is not published in this repository.
 
 [Ask about the handbook](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&title=%5BEbook%20interest%5D%20Codex%20AGENTS.md%20Operations)
 
+Free troubleshooting guide:
+[diagnose Codex AGENTS.md loading, overrides, and truncation](codex-agents-md-loading-troubleshooting.html).
+
 ### Go/Linux Cross-Architecture CI Starter Kit
 
 - Launch price: **USD 29**

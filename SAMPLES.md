@@ -18,6 +18,7 @@ permissions, secrets, cache, logs, ownership, and runtime coverage.
 | [Agent skill acceptance checklist](samples/agent-skill-acceptance-checklist.md) | An agent prompt works inconsistently or lacks tests | [Request an agent skill](https://github.com/soul-sol/verified-automation-services/issues/new?template=agent-skill.yml) |
 | [Go cross-architecture workflow](samples/go-cross-architecture.yml) | A Go project needs compile and test coverage across Linux architectures | [Review the full starter kit](go-cross-architecture-ci-kit.html) |
 | [Korean AGENTS.md guide and examples](https://github.com/soul-sol/agents-md-guide-ko) | A repository needs concrete root and nested agent instructions | [Review the audit tool and template kit](agents-md-audit-kit.html) |
+| [Codex AGENTS.md loading and truncation guide](codex-agents-md-loading-troubleshooting.html) | Codex appears to ignore, override, or truncate durable instructions | [Preview the operations handbook](codex-agents-operations-handbook.html) |
 | [`exec format error` doctor](https://github.com/soul-sol/go-exec-format-doctor) | A local binary may target the wrong OS or architecture | [Review the full starter kit](go-cross-architecture-ci-kit.html) |
 | [Docker `exec format error` guide](exec-format-error-docker-arm64-fix.html) | A container works on one architecture but fails on another | [Run the safe diagnosis, then review the CI kit](go-cross-architecture-ci-kit.html) |
 

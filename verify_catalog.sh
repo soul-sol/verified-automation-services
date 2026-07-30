@@ -28,6 +28,7 @@ for required in \
   agents-md-audit-kit.html \
   ci-reliability-scorecard.html \
   ci-reliability-scorecard.mjs \
+  codex-agents-md-loading-troubleshooting.html \
   codex-agents-operations-handbook.html \
   developer-reliability-bundle.html \
   exec-format-error-docker-arm64-fix.html \
@@ -62,13 +63,14 @@ sitemap_urls=(
     --xpath '//*[local-name()="loc"]/text()' \
     "$ROOT/sitemap.xml" 2>/dev/null)}"
 )
-[[ "${#sitemap_urls[@]}" -eq 11 ]]
+[[ "${#sitemap_urls[@]}" -eq 12 ]]
 [[ "${sitemap_urls[(Ie)https://soul-sol.github.io/verified-automation-services/showcase.html]}" -eq 0 ]]
 
 indexable_pages=(
   index.html
   agents-md-audit-kit.html
   ci-reliability-scorecard.html
+  codex-agents-md-loading-troubleshooting.html
   codex-agents-operations-handbook.html
   developer-reliability-bundle.html
   exec-format-error-docker-arm64-fix.html
@@ -121,6 +123,15 @@ rg -q 'digital-kit.yml' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'digital-kit.yml' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'github-actions-ci-triage-ebook.html' "$ROOT/index.html"
 rg -q 'codex-agents-operations-handbook.html' "$ROOT/index.html"
+rg -q 'codex-agents-md-loading-troubleshooting.html' "$ROOT/index.html"
+rg -q 'project_doc_max_bytes' \
+  "$ROOT/codex-agents-md-loading-troubleshooting.html"
+rg -q 'AGENTS.override.md' \
+  "$ROOT/codex-agents-md-loading-troubleshooting.html"
+rg -q 'learn.chatgpt.com/docs/agent-configuration/agents-md.md' \
+  "$ROOT/codex-agents-md-loading-troubleshooting.html"
+rg -q '"@type": "BlogPosting"' \
+  "$ROOT/codex-agents-md-loading-troubleshooting.html"
 rg -q 'github-actions-exit-code-137-oom-fix.html' "$ROOT/index.html"
 rg -q 'State.OOMKilled' "$ROOT/github-actions-exit-code-137-oom-fix.html"
 rg -q 'memory.events' "$ROOT/github-actions-exit-code-137-oom-fix.html"
@@ -219,6 +230,7 @@ rg -q 'agent-skill.yml' "$ROOT/samples/agent-skill-acceptance-checklist.md"
 rg -q 'go-cross-architecture-ci-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'exec-format-error-docker-arm64-fix.html' "$ROOT/SAMPLES.md"
 rg -q 'github-actions-exit-code-137-oom-fix.html' "$ROOT/SAMPLES.md"
+rg -q 'codex-agents-md-loading-troubleshooting.html' "$ROOT/SAMPLES.md"
 rg -q 'agents-md-audit-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'go test ./...' "$ROOT/samples/go-cross-architecture.yml"
 

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static troubleshooting guide with no client-side JavaScript. -->
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Codex가 AGENTS.md를 읽지 않는 것처럼 보일 때 CODEX_HOME, override, 프로젝트 경로, 32KiB 한도와 새 세션 적용 여부를 7분 안에 확인하세요."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Codex가 AGENTS.md를 안 읽을 때: 7분 진단">
+    <meta
+      property="og:description"
+      content="파일을 고치기 전에 실제 Codex home, 지침 우선순위, 바이트 한도와 새 프로세스 로딩을 증거로 확인합니다."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/codex-agents-md-loading-troubleshooting.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/codex-agents-md-loading-troubleshooting.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Codex가 AGENTS.md를 안 읽을 때: 7분 진단</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Codex가 AGENTS.md를 안 읽을 때: 7분 진단",
+        "description": "Codex AGENTS.md의 실제 로딩 경로, override, 프로젝트 지침 순서, 바이트 한도와 새 세션 적용을 확인하는 진단 가이드.",
+        "datePublished": "2026-07-30",
+        "dateModified": "2026-07-30",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/codex-agents-md-loading-troubleshooting.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="주요 메뉴">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#diagnose">진단 순서</a>
+          <a class="nav-link" href="#decision">판정표</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="codex-agents-operations-handbook.html"
+          >
+            운영 핸드북, USD 19
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Codex AGENTS.md 문제 해결 가이드</p>
+            <h1>
+              Codex가 AGENTS.md를 <span class="nowrap">안 읽을 때:</span>
+              7분 진단
+            </h1>
+            <p class="article-dek">
+              파일을 다시 쓰기 전에 실제 Codex home, override, 프로젝트
+              루트부터 현재 디렉터리까지의 지침 경로, 바이트 한도와 새
+              프로세스 로딩을 차례로 확인하세요.
+            </p>
+            <div class="article-meta">
+              <span>Verified Automation Services</span>
+              <span>게시 <time datetime="2026-07-30">2026년 7월 30일</time></span>
+              <span>약 7분</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="글 목차">
+            <h2>이 글의 순서</h2>
+            <ol>
+              <li><a href="#quick-answer">빠른 답</a></li>
+              <li><a href="#diagnose">5단계 진단</a></li>
+              <li><a href="#decision">증거별 판정</a></li>
+              <li><a href="#persistence">새 프로세스 검증</a></li>
+              <li><a href="#sources">공식 근거</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>빠른 답</h2>
+              <p>
+                Codex는 실행을 시작할 때 전역 지침과 프로젝트 지침을
+                결합합니다. 전역 범위에서는
+                <span class="inline-code">AGENTS.override.md</span>가
+                있으면 <span class="inline-code">AGENTS.md</span>보다
+                먼저 선택됩니다. 프로젝트 범위에서는 프로젝트 루트부터
+                현재 작업 디렉터리까지 내려오며 디렉터리마다 최대 한
+                파일을 읽습니다.
+              </p>
+              <p>
+                가장 흔한 원인은 잘못된
+                <span class="inline-code">CODEX_HOME</span>, 예상하지 못한
+                override, 작업 디렉터리 불일치, 기본 32KiB 프로젝트 지침
+                한도, 또는 설정 변경 후 기존 세션을 계속 사용한 경우입니다.
+              </p>
+            </section>
+
+            <section id="diagnose">
+              <h2>5단계로 실제 로딩 경로를 확인하세요</h2>
+
+              <h3>
+                1. 지금 실행이 사용하는
+                <span class="nowrap">Codex home</span>을 확인합니다
+              </h3>
+              <pre class="article-code"><code>effective_codex_home="${CODEX_HOME:-$HOME/.codex}"
+printf 'CODEX_HOME=%s\n' "$effective_codex_home"
+
+ls -la "$effective_codex_home"/AGENTS.md \
+  "$effective_codex_home"/AGENTS.override.md 2&gt;/dev/null || true</code></pre>
+              <p>
+                편집한 파일과 실행이 읽는 파일이 같은 경로인지 먼저
+                비교합니다. 셸, 데스크톱 앱, 자동화 프로세스가 서로 다른
+                <span class="inline-code">CODEX_HOME</span>을 사용할 수
+                있습니다.
+              </p>
+
+              <h3>2. 전역 override가 기본 파일을 가리는지 확인합니다</h3>
+              <pre class="article-code"><code>for candidate in \
+  "$effective_codex_home/AGENTS.override.md" \
+  "$effective_codex_home/AGENTS.md"; do
+  if [ -s "$candidate" ]; then
+    printf 'first non-empty global file: %s\n' "$candidate"
+    break
+  fi
+done</code></pre>
+              <p>
+                전역 수준에서는 첫 번째 비어 있지 않은 파일 하나만
+                사용합니다. override가 남아 있다면 기본 AGENTS.md를
+                고쳐도 현재 실행에는 반영되지 않습니다.
+              </p>
+
+              <h3>3. 프로젝트 루트와 현재 디렉터리를 고정합니다</h3>
+              <pre class="article-code"><code>printf 'cwd=%s\n' "$PWD"
+git rev-parse --show-toplevel 2&gt;/dev/null || \
+  printf 'git project root not found\n'
+
+find "$PWD" -maxdepth 1 \
+  \( -name 'AGENTS.override.md' -o -name 'AGENTS.md' \) \
+  -type f -print</code></pre>
+              <p>
+                Codex는 프로젝트 루트부터 현재 디렉터리까지의 경로만
+                확인합니다. 현재 디렉터리의 형제 폴더나 더 깊은 하위
+                폴더에 둔 파일은 현재 작업의 지침 체인에 포함되지 않습니다.
+              </p>
+
+              <h3>4. 지침 체인이 바이트 한도를 넘는지 확인합니다</h3>
+              <pre class="article-code"><code># 후보 파일의 실제 바이트 수
+wc -c AGENTS.md AGENTS.override.md 2&gt;/dev/null || true
+
+# 설정에 명시한 한도 확인
+grep -n 'project_doc_max_bytes' \
+  "$effective_codex_home/config.toml" 2&gt;/dev/null || \
+  printf 'default project limit applies\n'</code></pre>
+              <p>
+                공식 문서의 기본 프로젝트 지침 한도는 32KiB입니다.
+                Codex는 결합된 프로젝트 지침이
+                <span class="inline-code">project_doc_max_bytes</span>에
+                도달하면 추가 내용을 중단합니다. 핵심 규칙을 앞쪽에
+                두고, 필요한 경우 한도를 올리거나 가까운 하위 디렉터리의
+                지침으로 범위를 나누세요.
+              </p>
+
+              <h3>5. 설정 변경 후 새 실행에서 확인합니다</h3>
+              <pre class="article-code"><code>codex --cd "$PWD" --ask-for-approval never \
+  "열려 있는 파일을 검색하지 말고, 실행 전에 자동 로드된 지침 출처와 각 첫 번째 제목을 순서대로 알려줘."</code></pre>
+              <p>
+                지침 체인은 실행 시작 시 만들어집니다. 이미 열린 세션에
+                파일이나 설정을 바꾼 뒤 같은 대화를 계속하면 새 로딩 결과를
+                증명할 수 없습니다. 새 명령 또는 새 세션에서 확인하세요.
+              </p>
+            </section>
+
+            <section id="decision">
+              <h2>관찰한 증거로 다음 행동을 고르세요</h2>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>AGENTS.md 로딩 문제의 증거별 판정</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">관찰</th>
+                      <th scope="col">가장 가까운 원인</th>
+                      <th scope="col">다음 행동</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td data-label="관찰">편집 경로와 CODEX_HOME이 다름</td>
+                      <td data-label="원인">전역 프로필 불일치</td>
+                      <td data-label="다음 행동">실제 home의 지침을 고치고 새 실행</td>
+                    </tr>
+                    <tr>
+                      <td data-label="관찰">비어 있지 않은 전역 override가 있음</td>
+                      <td data-label="원인">기본 지침 가림</td>
+                      <td data-label="다음 행동">override를 의도대로 수정하거나 제거</td>
+                    </tr>
+                    <tr>
+                      <td data-label="관찰">프로젝트 파일이 루트부터 cwd 경로 밖에 있음</td>
+                      <td data-label="원인">발견 경로 불일치</td>
+                      <td data-label="다음 행동">루트 또는 적용할 하위 경로로 이동</td>
+                    </tr>
+                    <tr>
+                      <td data-label="관찰">체인 끝의 규칙만 누락됨</td>
+                      <td data-label="원인">바이트 한도 도달</td>
+                      <td data-label="다음 행동">크기 축소, 범위 분리 또는 한도 조정</td>
+                    </tr>
+                    <tr>
+                      <td data-label="관찰">새 실행에서는 정상, 기존 세션만 누락</td>
+                      <td data-label="원인">기존 지침 체인 유지</td>
+                      <td data-label="다음 행동">세션을 새로 시작</td>
+                    </tr>
+                    <tr>
+                      <td data-label="관찰">전체 파일이 로드됐지만 행동만 누락</td>
+                      <td data-label="원인">발견이 아닌 준수 문제</td>
+                      <td data-label="다음 행동">완료 기준을 짧고 검증 가능하게 재작성</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="persistence">
+              <h2>
+                중요한 규칙은
+                <span class="nowrap">새 프로세스에서</span> 증명하세요
+              </h2>
+              <p>
+                파일 존재, 심볼릭 링크 또는 현재 대화의 기억만으로는
+                영속성을 증명할 수 없습니다. 규칙 끝에 고유한 검사 문장을
+                두고 새 실행이 그 문장을 실제로 회상하는지 확인합니다.
+                규칙이 길다면 전체 파일의 바이트 수와 설정 한도를 함께
+                기록하세요.
+              </p>
+              <pre class="article-code"><code>instruction_file="$effective_codex_home/AGENTS.md"
+wc -c "$instruction_file"
+
+# macOS와 Linux에서 파일 해시 기록
+shasum -a 256 "$instruction_file" 2&gt;/dev/null || \
+  sha256sum "$instruction_file"</code></pre>
+              <aside class="article-callout" aria-labelledby="handbook-title">
+                <h3 id="handbook-title">반복 가능한 운영 점검이 필요합니까?</h3>
+                <p>
+                  <a href="codex-agents-operations-handbook.html">
+                    Codex AGENTS.md 운영 핸드북
+                  </a>은 지침 계층, 32KiB 경계, 새 프로세스 영속성, 외부 모델
+                  실패-폐쇄와 자동 복구를 하나의 체크리스트로 묶습니다.
+                  출시가는 USD 19이며 앞 6쪽은 공개되어 있습니다.
+                </p>
+                <p>
+                  구매 전에
+                  <a href="downloads/codex-agents-operations-preview-ko.pdf">
+                    6쪽 미리보기
+                  </a>로 내용과 형식을 먼저 확인하세요.
+                </p>
+              </aside>
+            </section>
+
+            <section id="sources">
+              <h2>공식 근거</h2>
+              <ul class="source-list">
+                <li>
+                  OpenAI,
+                  <a href="https://learn.chatgpt.com/docs/agent-configuration/agents-md.md">AGENTS.md 사용자 지침</a>:
+                  전역·프로젝트 발견 순서, override, 기본 32KiB 한도,
+                  새 실행 검증.
+                </li>
+                <li>
+                  OpenAI,
+                  <a href="https://learn.chatgpt.com/docs/config-file/config-advanced#project-instructions-discovery">프로젝트 지침 탐색</a>:
+                  <span class="inline-code">project_doc_max_bytes</span>와
+                  fallback 파일 설정.
+                </li>
+              </ul>
+              <p>
+                이 글은 공개 진단 자료입니다. 저장소, 지침 원문, 비밀정보
+                또는 고객 데이터를 제출하도록 요구하지 않습니다.
+              </p>
+            </section>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <p>Verified Automation Services</p>
+        <a href="./">전체 무료 샘플과 상품 보기</a>
+      </div>
+    </footer>
+  </body>
+</html>
