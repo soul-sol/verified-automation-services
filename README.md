@@ -193,9 +193,10 @@ credentials or production access are required for the initial fit check.
 For a bounded first engagement, the **AI API cost/security diagnosis is KRW
 79,000**. It covers up to two public API routes and delivers a reproducible
 risk report with pass/fail acceptance checks. Read the [synthetic sample report](samples/ai-api-hardening-sample.md)
-first, then use the [AI API hardening request form](https://github.com/soul-sol/verified-automation-services/issues/new?template=ai-api-hardening.yml)
-with a repository or minimal reproduction. Do not send keys or private customer
-data. Scope and payment method are agreed in writing before work begins.
+first, then use the [login-free public catalog contact path](https://soul-sol.github.io/verified-automation-services/#services)
+with a repository or minimal reproduction. The GitHub request form is an
+optional logged-in route. Do not send keys or private customer data. Scope and
+payment method are agreed in writing before work begins.
 
 ### 3. AI Agent Skill and Evaluation Harness
 

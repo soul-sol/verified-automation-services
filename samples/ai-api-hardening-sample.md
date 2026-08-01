@@ -42,6 +42,6 @@ export async function summarize(text: string) {
 비용 상한: fixture 예산 초과 요청이 공급자 호출 전에 거부됨
 ```
 
-실제 진단 문의: [AI API 하드닝 요청](https://github.com/soul-sol/verified-automation-services/issues/new?template=ai-api-hardening.yml)
-으로 범위만 보내면 된다. 문의·조회는 매출이 아니며, 결제 확인과 정산
-영수증이 있어야 매출로 기록한다.
+실제 진단 문의: [로그인 없는 공개 카탈로그 문의 경로](https://soul-sol.github.io/verified-automation-services/#services)
+로 범위만 보내면 된다. GitHub 이슈 양식은 선택적인 보조 경로다. 문의·조회는
+매출이 아니며, 결제 확인과 정산 영수증이 있어야 매출로 기록한다.
