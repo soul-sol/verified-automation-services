@@ -20,6 +20,7 @@ issue_forms=("$ROOT"/.github/ISSUE_TEMPLATE/*.yml)
 
 for required in \
   README.md \
+  SUPPORT.md \
   DELIVERY.md \
   SAMPLES.md \
   robots.txt \
