@@ -174,6 +174,20 @@ separately from code-fixable failures.
 
 [Request CI diagnosis](https://github.com/soul-sol/verified-automation-services/issues/new?template=ci-triage.yml)
 
+### 2b. AI API Security and Cost Hardening
+
+| Package | Price | Delivery |
+|---|---:|---|
+| Review | KRW 79,000 | Route, key-exposure, abuse, and provider-cost risk report |
+| Hardening patch | KRW 149,000 | Minimal tested server-side protection patch |
+| Multi-route or app scope | From KRW 299,000 | Auth, rate limits, redaction, tests, and operator notes |
+
+The work can cover server-only provider keys, authentication, bounded rate limits,
+safe 401/429 responses, cost controls, redacted errors, and offline tests. No
+credentials or production access are required for the initial fit check.
+
+[Request AI API hardening](https://github.com/soul-sol/verified-automation-services/issues/new?template=ai-api-hardening.yml)
+
 ### 3. AI Agent Skill and Evaluation Harness
 
 | Package | Price | Delivery |

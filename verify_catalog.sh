@@ -16,7 +16,7 @@ ruby -e '
 ' "$ROOT"
 
 issue_forms=("$ROOT"/.github/ISSUE_TEMPLATE/*.yml)
-[[ "${#issue_forms[@]}" -eq 5 ]]
+[[ "${#issue_forms[@]}" -eq 6 ]]
 
 for required in \
   README.md \

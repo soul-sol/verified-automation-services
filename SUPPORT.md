@@ -10,6 +10,7 @@ each request receives a written scope and acceptance checks.
 |---|---|---:|---|
 | A workbook may contain hidden structure, links, macros, or formula risks | Spreadsheet structure audit | KRW 49,000 | [spreadsheet audit](https://github.com/soul-sol/verified-automation-services/issues/new?template=spreadsheet-audit.yml) |
 | A GitHub Actions run fails and the cause is unclear | CI diagnosis | KRW 79,000 | [CI diagnosis](https://github.com/soul-sol/verified-automation-services/issues/new?template=ci-triage.yml) |
+| An AI API key or provider budget needs server-side protection | AI API security and cost hardening | KRW 79,000 | [AI API hardening](https://github.com/soul-sol/verified-automation-services/issues/new?template=ai-api-hardening.yml) |
 | An AI agent skill needs repeatable acceptance checks | Skill and evaluation harness | KRW 99,000 | [agent-skill request](https://github.com/soul-sol/verified-automation-services/issues/new?template=agent-skill.yml) |
 | You want a ready-made technical kit | Digital kit inquiry | USD 9–49 | [kit inquiry](https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml) |
 

@@ -1,0 +1,51 @@
+name: AI API security and cost hardening
+description: Request a fixed-scope server-side AI API hardening review or patch.
+title: "[AI API hardening] "
+labels:
+  - inquiry
+  - ai-api
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share only public repository and sanitized error/run URLs. Never post API keys, prompts, customer data, or private infrastructure details.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - Review — KRW 79,000
+        - Hardening patch — KRW 149,000
+        - Multi-route or app scope — from KRW 299,000
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Public repository URL
+      placeholder: "https://github.com/owner/repository"
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Observed API or cost risk
+      description: Explain the route, provider, abuse mode, or unexpected cost signal without secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Desired acceptance checks
+      description: Examples include server-only keys, authentication, rate limits, safe 401/429, redaction, and offline tests.
+    validations:
+      required: true
+  - type: checkboxes
+    id: access
+    attributes:
+      label: Access confirmation
+      options:
+        - label: The repository and evidence are public and require no credentials.
+          required: true
+        - label: I have not posted tokens, secrets, private runner details, or customer data.
+          required: true
