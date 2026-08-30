@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: one static product page reusing the documented no-JavaScript primitives. -->
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Claude Max 한도가 주 중반에 바닥나는 분, 에이전트 하나가 20분째 혼자 생각만 하는 걸 지켜본 적 있는 분을 위한 운영 매뉴얼입니다."
+    >
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/solo-team-claude-code-orchestration.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>혼자서 팀처럼 — Claude Code 멀티 에이전트 오케스트레이션 실전 | Verified Automation</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="주요 메뉴">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#contents">목차</a>
+          <a class="nav-link" href="#preview">무료 미리보기</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&amp;title=%5BEbook%20interest%5D%20Solo%20Team%20Claude%20Code"
+            data-checkout-product="solo-team-claude-code-orchestration"
+            data-checkout-label="바로 구매"
+          >
+            구매 문의
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="container hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Claude Code 멀티 에이전트 오케스트레이션 실전</p>
+          <h1 class="product-heading">
+            <span class="phrase-line">혼자서 팀처럼</span>
+            <span class="phrase-line">Claude Code 워커 풀 구축</span>
+          </h1>
+          <p class="hero-lead">
+            CI 실패 분류부터 교차 아키텍처 빌드, 에이전트 지침, 스프레드시트
+            구조와 공개 OSS 작업 추적까지 필요한 도구를 독립 ZIP 5개로
+            제공합니다.
+          </p>
+          <p class="english-summary" lang="en">
+            A field manual for running one Claude Code session as the commander of a worker pool.
+          </p>
+          <div class="hero-actions">
+            <a class="action action-primary" href="#preview">무료 자료 먼저 보기</a>
+            <a
+              class="action action-secondary"
+              href="https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&amp;title=%5BEbook%20interest%5D%20Solo%20Team%20Claude%20Code"
+              data-checkout-product="solo-team-claude-code-orchestration"
+              data-checkout-label="출시가 14달러 바로 구매"
+            >
+              출시가 14달러 문의
+            </a>
+          </div>
+        </div>
+
+        <figure class="hero-media code-showcase">
+          <div class="code-window">
+            <div class="code-window-header">
+              <span>solo-team-claude-code-orchestration-v1.0.0</span>
+              <span>5 products</span>
+            </div>
+            <pre><code>products/
+  spreadsheet-preflight.zip
+  ci-triage-ebook.zip
+  agents-md-audit-kit.zip
+  oss-bounty-monitor-kit.zip
+  go-cross-arch-ci-kit.zip
+
+<span class="code-accent">[PASS]</span> SHA-256 checksums
+<span class="code-accent">[PASS]</span> nested archive tests
+<span class="code-accent">[PASS]</span> deterministic rebuild</code></pre>
+          </div>
+          <figcaption>
+            전달 구성 요약
+            <span lang="en">Delivery layout overview</span>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="price-strip" aria-label="상품 요약">
+        <div class="price-item">
+          <span class="price-label">출시 가격</span>
+          <strong class="price-value">USD 14</strong>
+        </div>
+        <div class="price-item">
+          <span class="price-label">전자책</span>
+          <strong class="price-value">A4 약 150쪽</strong>
+        </div>
+        <div class="price-item">
+          <span class="price-label">추가 자료</span>
+          <strong class="price-value">템플릿 ZIP + 감시 스크립트</strong>
+        </div>
+      </section>
+
+      <section class="section" id="contents">
+        <div class="container">
+          <p class="eyebrow">다운로드 구성</p>
+          <h2 class="section-title">포함 파일 및 목차</h2>
+          <p class="section-intro">
+            PDF 본문(약 150쪽, A4)과 templates.zip(CLAUDE.md 오케스트레이션 섹션, worker_watch.sh stall 감시 스크립트, 리뷰 게이트 프롬프트, 작업 명세 템플릿, 진행 보고 템플릿, 안전 금지 목록)이 포함되어 있습니다.
+          </p>
+
+          <div class="service-list">
+            <article class="service-row">
+              <div>
+                <p class="service-kicker" lang="en">Chapter 0-4</p>
+                <h3 class="service-name">설계 및 환경 세팅</h3>
+              </div>
+              <p class="service-copy">
+                0. 들어가며: 왜 "지휘관 + 워커 풀"인가<br>
+                1. 역할 분리 설계 — Claude는 지휘관, 나머지는 손<br>
+                2. 30분 세팅 — 워커 5기 설치·인증·래퍼<br>
+                3. 워커가 멈추지 않는 작업 명세 쓰는 법<br>
+                4. 병렬 분배와 git worktree
+              </p>
+            </article>
+
+            <article class="service-row">
+              <div>
+                <p class="service-kicker" lang="en">Chapter 5-9</p>
+                <h3 class="service-name">안전장치와 자동화</h3>
+              </div>
+              <p class="service-copy">
+                5. Stall 감지 — 워커가 죽었는지 살았는지 아는 법<br>
+                6. 검증 게이트와 codex 적대적 리뷰<br>
+                7. 재배정과 장애 대응 — 폴백 체인이 아니다<br>
+                8. 한도·비용 정책 — Claude 한도를 안 먹는 구조<br>
+                9. 안전 경계 — 브라우저·계정·비밀정보
+              </p>
+            </article>
+
+            <article class="service-row">
+              <div>
+                <p class="service-kicker" lang="en">Chapter 10-12</p>
+                <h3 class="service-name">실전 사례와 템플릿</h3>
+              </div>
+              <p class="service-copy">
+                10. 세션 간 기억 — 메모리 파일·SESSION-STATE·진행 보고<br>
+                11. 사례: 4시간 동안 워커 5기로 기능 3개 출시하기<br>
+                12. 템플릿 모음(복붙용)
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tinted" id="preview">
+        <div class="container">
+          <p class="eyebrow">결제 전에 확인</p>
+          <h2 class="section-title">무료 자료로 품질과 범위를 먼저 확인하세요</h2>
+          <p class="section-intro">
+            이메일이나 파일 업로드 없이 무료 3장 공개를 공개 저장소에서 확인할 수 있습니다.
+          </p>
+
+          <div class="scope-split">
+            <div class="scope-column">
+              <h3>이 책을 적용하면</h3>
+              <ul>
+                <li>Claude 한도는 기획·검증에만 쓰고 구현은 병렬로 처리합니다.</li>
+                <li>워커가 멈춰 있는 걸 자동 감지하는 감시 스크립트를 적용합니다.</li>
+                <li>커밋 전 codex 적대적 리뷰로 버그와 회귀를 잡습니다.</li>
+              </ul>
+            </div>
+            <div class="scope-column scope-column-excluded">
+              <h3>이런 분께는 맞지 않습니다</h3>
+              <ul>
+                <li>Claude Code / Codex CLI를 아직 한 번도 안 써본 분 (기초는 다루지 않습니다)</li>
+                <li>특정 프레임워크 코딩 튜토리얼을 기대하는 분</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <a class="action action-primary" href="https://github.com/soul-sol/claude-code-orchestration-ko">GitHub 저장소 무료 미리보기</a>
+            <a class="action action-secondary" href="https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&amp;title=%5BEbook%20interest%5D%20Solo%20Team%20Claude%20Code" data-checkout-product="solo-team-claude-code-orchestration" data-checkout-label="출시가 14달러 바로 구매">출시가 14달러 문의</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="process">
+        <div class="container">
+          <p class="eyebrow">공개 문의 3단계</p>
+          <h2 class="section-title">호환성과 전달 방식을 먼저 확정합니다</h2>
+          <ol class="journey">
+            <li class="journey-item">
+              <span class="step-number">01</span>
+              <h3>무료 자료를 확인합니다</h3>
+              <p>필요한 상품과 현재 환경의 호환성을 공개 자료로 먼저 점검합니다.</p>
+            </li>
+            <li class="journey-item">
+              <span class="step-number">02</span>
+              <h3>플랫폼만 적습니다</h3>
+              <p>운영체제와 사용 목적만 남기고 비밀값과 고객 자료는 제외합니다.</p>
+            </li>
+            <li class="journey-item">
+              <span class="step-number">03</span>
+              <h3>결제와 전달을 확정합니다</h3>
+              <p>지원 가능한 결제 경로와 ZIP 전달 방법을 확인한 뒤 진행합니다.</p>
+            </li>
+          </ol>
+
+          <aside class="notice notice-warning" aria-labelledby="notice-title">
+            <h3 id="notice-title">GitHub는 결제창이 아닙니다</h3>
+            <p>
+              공개 이슈는 구매 관심과 호환성 확인용입니다. 주문이나 결제가 아니며
+              비밀번호, 토큰, 비공개 코드, 고객 자료와 결제정보를 올리면 안 됩니다.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">전자책 + 템플릿, 출시가 USD 14</p>
+            <h2>무료 자료를 확인한 뒤 문의하세요</h2>
+            <p>호환성과 전달 방식을 확인하기 전에는 결제를 요청하지 않습니다.</p>
+          </div>
+          <a
+            class="action action-primary"
+            href="https://github.com/soul-sol/verified-automation-services/issues/new?template=digital-kit.yml&amp;title=%5BEbook%20interest%5D%20Solo%20Team%20Claude%20Code"
+            data-checkout-product="solo-team-claude-code-orchestration"
+            data-checkout-label="바로 구매"
+          >
+            구매 문의
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p lang="en">Preview first. Fixed price. Verifiable delivery.</p>
+        <a class="text-link" href="./">전체 서비스 보기</a>
+      </div>
+    </footer>
+    <script src="checkout-links.js" defer></script>
+  </body>
+</html>

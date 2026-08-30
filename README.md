@@ -77,7 +77,7 @@ this repository.
 
 ### GitHub Actions CI Failure Triage Ebook
 
-- Launch price: **USD 19**
+- Launch price: **USD 9**
 - Format: 19-page Korean PDF
 - Extras: incident report template and 12-item triage checklist
 - Free preview: [read the first 6 pages](downloads/github-actions-ci-triage-preview-ko.pdf)
@@ -94,7 +94,7 @@ Free troubleshooting guide:
 
 ### Codex AGENTS.md Operations Handbook
 
-- Price: USD 19 launch price
+- Price: USD 9 launch price
 - Format: 16-page Korean PDF
 - Extras: operations checklist and persistence audit template
 - Free preview: [read the first 6 pages](downloads/codex-agents-operations-preview-ko.pdf)
@@ -111,7 +111,7 @@ Free troubleshooting guide:
 
 ### Go/Linux Cross-Architecture CI Starter Kit
 
-- Launch price: **USD 29**
+- Launch price: **USD 9**
 - Targets: Linux AMD64, ARM64, and 386 with `CGO_ENABLED=0`
 - Extras: local compile report, optional QEMU runtime smoke, Dockerfile,
   working example, and adoption checklist
@@ -219,9 +219,9 @@ an untested prompt.
 | Developer Reliability Bundle, 5 products | USD 49 |
 | Spreadsheet Preflight Ebook + CLI | USD 9 |
 | AGENTS.md Audit Kit + templates | USD 9 |
-| GitHub Actions CI Triage Ebook + templates | USD 19 |
-| Open Source Bounty Monitor Kit | USD 19 |
-| Go/Linux Cross-Architecture CI Starter Kit | USD 29 |
+| GitHub Actions CI Triage Ebook + templates | USD 9 |
+| Open Source Bounty Monitor Kit | USD 9 |
+| Go/Linux Cross-Architecture CI Starter Kit | USD 9 |
 
 GitHub records purchase interest only; it does not process payment. A supported
 payment route and delivery method are confirmed before any payment is requested.

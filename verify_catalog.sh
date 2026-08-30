@@ -169,7 +169,7 @@ rg -q 'data-scorecard' "$ROOT/spreadsheet-integrity-scorecard.html"
 rg -q '답변과 워크북은 저장하거나 전송하지 않습니다' \
   "$ROOT/spreadsheet-integrity-scorecard.html"
 node "$ROOT/test_spreadsheet_scorecard.mjs" >/dev/null
-rg -q 'USD 19' "$ROOT/github-actions-ci-triage-ebook.html"
+rg -q 'USD 9' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
   "$ROOT/github-actions-ci-triage-ebook.html"
 rg -Fq 'GitHub Actions CI Triage Ebook + templates' \
@@ -184,7 +184,7 @@ rg -q 'downloads/spreadsheet-preflight-preview-ko.pdf' \
   "$ROOT/spreadsheet-preflight-ebook.html"
 rg -Fq 'Spreadsheet Preflight Ebook + CLI' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
-rg -q 'USD 29' "$ROOT/go-cross-architecture-ci-kit.html"
+rg -q 'USD 9' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'samples/go-cross-architecture.yml' \
   "$ROOT/go-cross-architecture-ci-kit.html"
 rg -Fq 'Go/Linux Cross-Architecture CI Starter Kit' \
@@ -227,7 +227,7 @@ if rg -n '—|biz\.lifestep@gmail\.com|skilly12@gmail\.com|vbn1477@gmail\.com' \
   echo "Landing page contains a banned dash or private email." >&2
   exit 1
 fi
-rg -q 'USD 29' "$ROOT/README.md"
+rg -q 'USD 9' "$ROOT/README.md"
 rg -q 'AGENTS.md Audit Kit' "$ROOT/README.md"
 rg -q 'GitHub does not process or escrow payment' "$ROOT/DELIVERY.md"
 rg -q 'spreadsheet-audit.yml' "$ROOT/samples/spreadsheet-preflight-checklist.md"

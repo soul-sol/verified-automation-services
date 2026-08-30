@@ -2,12 +2,13 @@
   "use strict";
 
   const checkoutLinks = Object.freeze({
-    "agents-md-audit-kit": null,
+    "agents-md-audit-kit": "https://lifestep1.gumroad.com/l/agents-md-audit-kit",
     "codex-agents-operations-handbook": null,
     "developer-reliability-bundle": null,
-    "github-actions-ci-triage-ebook": null,
-    "go-cross-architecture-ci-kit": null,
-    "spreadsheet-preflight-ebook": null,
+    "github-actions-ci-triage-ebook": "https://lifestep1.gumroad.com/l/github-actions-ci-failure-triage-kit",
+    "go-cross-architecture-ci-kit": "https://lifestep1.gumroad.com/l/go-linux-cross-architecture-ci-starter-kit",
+    "solo-team-claude-code-orchestration": "https://lifestep1.gumroad.com/l/solo-team-claude-code-orchestration",
+    "spreadsheet-preflight-ebook": "https://lifestep1.gumroad.com/l/spreadsheet-structural-preflight-guide",
   });
 
   const approvedHosts = Object.freeze([
