@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static code review guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Review AI-written code for eight recurring failure families: exit codes, fake tests, scope creep, migration locks, injection, swallowed errors, dead code, and documentation drift."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="A review checklist for AI-written code (what agents actually break)">
+    <meta
+      property="og:description"
+      content="Eight concrete code-review checks for failures that plausible AI patches routinely hide."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/ai-written-code-review-checklist.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/ai-written-code-review-checklist.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>A review checklist for AI-written code (what agents actually break)</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "A review checklist for AI-written code (what agents actually break)",
+        "description": "Review AI-written code for eight recurring failure families: exit codes, fake tests, scope creep, migration locks, injection, swallowed errors, dead code, and documentation drift.",
+        "datePublished": "2026-09-01",
+        "dateModified": "2026-09-01",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/ai-written-code-review-checklist.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#correctness">Correctness</a>
+          <a class="nav-link" href="#security">Security</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#practical-checklist"
+          >
+            Use the checklist
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Adversarial code review guide</p>
+            <h1>A review checklist for AI-written code (what agents actually break)</h1>
+            <p class="article-dek">
+              AI patches often look complete because they are syntactically
+              tidy and locally plausible. Review the boundaries they tend to
+              miss: process status, negative tests, change scope, database
+              behavior, untrusted input, failure visibility, reachability, and
+              the instructions users will follow later.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-01">September 1, 2026</time></span>
+              <span>12 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#correctness">Correctness failures</a></li>
+              <li><a href="#scope-data">Scope and data failures</a></li>
+              <li><a href="#security">Security and errors</a></li>
+              <li><a href="#maintenance">Maintenance failures</a></li>
+              <li><a href="#practical-checklist">Pull-request checklist</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Review AI-written code as an adversarial change, not as a draft
+                that merely needs style cleanup. Start from the requested
+                behavior and the diff boundary. Then try to make the new path
+                fail: return a nonzero command, remove a fixture, send hostile
+                input, hold a database lock, force a dependency error, and run
+                the documented command from a clean checkout.
+              </p>
+              <p>
+                The eight families below recur because code generators optimize
+                for a plausible happy path. Each review check therefore asks for
+                evidence at a boundary the patch did not control. A green test
+                suite matters only after you have shown that the relevant test
+                becomes red when the implementation is deliberately broken.
+              </p>
+            </section>
+
+            <section id="correctness">
+              <h2>Correctness failures: status and tests</h2>
+
+              <h3>1. Pipelines hide the exit code that matters</h3>
+              <p>
+                A generated CI script often pipes a test command through
+                <span class="inline-code">tee</span> for readable logs. In Bash,
+                the pipeline normally returns the status of its last command.
+                If the tests fail but <span class="inline-code">tee</span>
+                succeeds, the job reports success.
+              </p>
+              <pre class="article-code"><code># Broken: npm test can fail while the script exits 0.
+npm test 2&gt;&amp;1 | tee test.log
+
+# Correct for Bash: make any failed pipeline stage fail the script.
+set -Eeuo pipefail
+npm test 2&gt;&amp;1 | tee test.log
+
+# When you need the individual statuses:
+set +e
+npm test 2&gt;&amp;1 | tee test.log
+test_rc=${PIPESTATUS[0]}
+set -e
+exit "$test_rc"</code></pre>
+              <p>
+                Review the shell named by the shebang; POSIX
+                <span class="inline-code">sh</span> does not guarantee Bash's
+                <span class="inline-code">pipefail</span> or
+                <span class="inline-code">PIPESTATUS</span>. Also inspect
+                subshells, command substitutions, and cleanup traps that may
+                overwrite the original status. The concrete test is simple:
+                replace the main command with
+                <span class="inline-code">false</span> and require the script
+                and CI step to fail.
+              </p>
+
+              <h3>2. Tests execute but cannot fail</h3>
+              <p>
+                Agents frequently add a test whose name describes the intended
+                behavior while its assertion permits the bug. Here a missing
+                authenticated resource returns 404, yet the test passes because
+                it only excludes server errors.
+              </p>
+              <pre class="article-code"><code>it("rejects anonymous requests", async () =&gt; {
+  const response = await request(app).get("/account");
+  expect(response.status).toBeLessThan(500); // 200 and 404 both pass
+});
+
+it("rejects anonymous requests with the public error shape", async () =&gt; {
+  const response = await request(app).get("/account");
+  expect(response.status).toBe(401);
+  expect(response.body).toEqual({ error: "authentication_required" });
+});</code></pre>
+              <p>
+                Look for tests with no assertion, broad ranges, snapshots
+                accepted without inspection, catches that log and continue, and
+                mocks that reproduce the implementation rather than the public
+                contract. Mutation-check the test manually: change the handler
+                to return 200 and confirm this specific test fails for the right
+                reason.
+              </p>
+            </section>
+
+            <section id="scope-data">
+              <h2>Scope and data failures: oversized diffs and unsafe locks</h2>
+
+              <h3>3. Scope creep hides inside helpful cleanup</h3>
+              <p>
+                Suppose the request is “reject an empty invoice ID in one API
+                route.” The agent also renames a shared helper, reformats 24
+                files, upgrades a validation dependency, and changes unrelated
+                error strings. Every extra surface increases regression risk and
+                makes the required behavior harder to review.
+              </p>
+              <pre class="article-code"><code>git diff --stat
+git diff --name-status
+git diff -- src/routes/invoices.ts test/invoices.test.ts
+
+# Find dependency and generated-file movement separately.
+git diff -- package.json package-lock.json
+git status --short</code></pre>
+              <p>
+                Write the allowed change set before reading implementation
+                details: route, focused test, and perhaps one shared validator.
+                Ask why every other file changed. A defensible answer must tie
+                the file to an acceptance criterion. “The agent noticed it” is
+                not evidence. Revert unrelated formatting and refactors into a
+                separate pull request, even when they are individually sensible.
+              </p>
+
+              <h3>4. A correct migration takes the wrong production lock</h3>
+              <p>
+                Database code can be logically correct and operationally
+                dangerous. A common PostgreSQL example is adding a normal index
+                to a busy table. <span class="inline-code">CREATE INDEX</span>
+                allows reads but blocks writes while it scans the table. The
+                migration passed on an empty test database because there was no
+                concurrent traffic.
+              </p>
+              <pre class="article-code"><code>-- Risky on a hot, large table:
+CREATE INDEX idx_events_account_id ON events (account_id);
+
+-- Lower write-blocking risk in PostgreSQL:
+CREATE INDEX CONCURRENTLY idx_events_account_id
+  ON events (account_id);</code></pre>
+              <p>
+                Concurrent index creation takes longer, performs more work, and
+                cannot run inside a transaction block. A failed attempt may also
+                leave an invalid index that needs explicit cleanup. Review the
+                database engine and version, estimated row count, lock level,
+                transaction wrapper, statement timeout, rollback behavior, and
+                deployment order. Rehearse while another session holds or waits
+                on representative writes; an empty-schema migration test does
+                not measure lock impact.
+              </p>
+            </section>
+
+            <section id="security">
+              <h2>Security and observability failures</h2>
+
+              <h3>5. Untrusted input crosses into an interpreter</h3>
+              <p>
+                Generated code often preserves the happy-path command while
+                changing how arguments reach it. Template interpolation turns a
+                commit supplied by an API caller into shell syntax:
+              </p>
+              <pre class="article-code"><code>// Broken: commit can contain shell metacharacters.
+exec(`git show --stat ${commit}`, callback);
+
+// Better: validate the expected identifier and avoid a shell.
+if (!/^[0-9a-f]{40}$/i.test(commit)) {
+  throw new TypeError("commit must be a full hexadecimal object ID");
+}
+
+execFile(
+  "git",
+  ["show", "--no-ext-diff", "--stat", commit],
+  { timeout: 10_000, maxBuffer: 1_000_000 },
+  callback
+);</code></pre>
+              <p>
+                Argument arrays remove shell interpretation, but they do not
+                validate business meaning or stop every called program from
+                parsing option-like values. Constrain the input to the smallest
+                valid language, pass it through a non-shell API, limit runtime
+                and output, and test quotes, whitespace, leading hyphens,
+                separators, Unicode, oversized values, and empty input. Repeat
+                the same review at SQL, HTML, regular-expression, template, path,
+                and URL boundaries.
+              </p>
+
+              <h3>6. Error handling quietly turns failure into valid data</h3>
+              <p>
+                A catch-all fallback makes a dashboard look stable while the
+                dependency is down. Callers cannot distinguish “there are no
+                orders” from “we failed to load orders,” so alerts, retries, and
+                user messages all disappear.
+              </p>
+              <pre class="article-code"><code>// Broken: outage becomes a valid empty result.
+async function listOrders(customerId) {
+  try {
+    return await store.findOrders(customerId);
+  } catch (error) {
+    logger.warn("order lookup failed");
+    return [];
+  }
+}
+
+// Preserve the failure and add safe context.
+async function listOrders(customerId) {
+  try {
+    return await store.findOrders(customerId);
+  } catch (error) {
+    throw new OrderLookupError("order lookup failed", { cause: error });
+  }
+}</code></pre>
+              <p>
+                Review every new <span class="inline-code">catch</span>, promise
+                rejection handler, optional chain, default value, retry, and
+                background callback. Ask whether the fallback is part of the
+                product contract. If it is, require a metric and a visible
+                degraded state. If it is not, preserve the typed error and map it
+                once at the system boundary without logging secrets or customer
+                data.
+              </p>
+            </section>
+
+            <section id="maintenance">
+              <h2>Maintenance failures: dead paths and stale instructions</h2>
+
+              <h3>7. The new path lands but the replaced code remains alive</h3>
+              <p>
+                An agent may introduce <span class="inline-code">retryV2</span>,
+                switch the primary caller, and leave
+                <span class="inline-code">legacyRetry</span>, its feature flag,
+                tests, configuration keys, and exported types behind. The build
+                stays green, but maintainers now have two apparent sources of
+                truth and security fixes may land in only one.
+              </p>
+              <pre class="article-code"><code>rg -n "legacyRetry|ENABLE_LEGACY_RETRY|retry_timeout_ms" \
+  src test config docs
+
+# Language-specific checks may reveal more:
+npx tsc --noEmit --noUnusedLocals --noUnusedParameters
+npx eslint . --max-warnings 0</code></pre>
+              <p>
+                Trace both directions: who calls each new symbol, and what the
+                old symbol still reaches. Remove obsolete code in the same
+                change when compatibility is not required. If it is required,
+                document the caller, removal condition, owner, and date. “Keep
+                it just in case” creates code that no test proves and no one
+                confidently deletes.
+              </p>
+
+              <h3>8. Documentation describes a command the code no longer accepts</h3>
+              <p>
+                Agents update the implementation and nearby comments but miss
+                README examples, sample configuration, runbooks, copied snippets,
+                and generated help. For example, the code renames
+                <span class="inline-code">timeout_ms</span> to
+                <span class="inline-code">timeoutSeconds</span>, while the
+                deployment guide still supplies the old key. The service starts
+                with a default, so CI never notices the ignored operator value.
+              </p>
+              <pre class="article-code"><code>rg -n "timeout_ms|timeoutSeconds" \
+  README.md docs examples config src test
+
+# Exercise the exact public examples in a clean environment.
+node ./bin/service.js --config examples/service.json --check
+node ./bin/service.js --help &gt; /tmp/current-help.txt
+diff -u docs/cli-help.txt /tmp/current-help.txt</code></pre>
+              <p>
+                Treat documentation commands and examples as executable
+                interfaces. Run them from a fresh checkout with only documented
+                prerequisites. Search old and new names across the entire
+                repository, check environment-variable tables and defaults, and
+                verify upgrade and rollback instructions. A prose review alone
+                will not reveal a flag that the parser silently ignores.
+              </p>
+            </section>
+
+            <section id="practical-checklist">
+              <h2>A compact pull-request checklist</h2>
+              <ol>
+                <li><strong>Exit:</strong> force the primary command to fail and confirm the script, job, and caller retain its nonzero status.</li>
+                <li><strong>Tests:</strong> break the implementation deliberately and confirm the new test becomes red for the intended reason.</li>
+                <li><strong>Scope:</strong> map every changed file to a requirement; separate unrelated cleanup.</li>
+                <li><strong>Migration:</strong> identify production lock behavior, transaction limits, runtime, retry, rollback, and partial-failure residue.</li>
+                <li><strong>Injection:</strong> trace every untrusted value into shells, queries, templates, paths, URLs, and parsers.</li>
+                <li><strong>Errors:</strong> ensure failures remain distinguishable from valid empty, false, zero, or default results.</li>
+                <li><strong>Dead code:</strong> search old names, flags, exports, tests, and configuration after the replacement lands.</li>
+                <li><strong>Docs:</strong> run public commands and examples from a clean environment and compare generated help.</li>
+              </ol>
+              <p>
+                Finish with the repository's real formatter, static analysis,
+                tests, migration checks, and a focused manual exercise of the
+                changed behavior. Then inspect the final diff again. Generated
+                code deserves the same authorship accountability as handwritten
+                code: the reviewer accepts the behavior, not the explanation of
+                how the patch was produced.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://www.gnu.org/software/bash/manual/html_node/Pipelines.html">
+                    GNU Bash manual: pipelines and pipeline status
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.postgresql.org/docs/current/sql-createindex.html">
+                    PostgreSQL: CREATE INDEX and CONCURRENTLY
+                  </a>
+                </li>
+                <li>
+                  <a href="https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html">
+                    OWASP: OS command injection defense
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resource</p>
+            <h2 id="resources-title">Run a deliberately adversarial review</h2>
+            <p>
+              The prompt pack turns these eight failure families into reusable,
+              evidence-seeking review prompts for code changes and pull requests.
+            </p>
+          </div>
+          <a
+            class="action action-primary"
+            href="https://lifestep1.gumroad.com/l/adversarial-review-prompt-pack"
+          >
+            View the review prompt pack
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

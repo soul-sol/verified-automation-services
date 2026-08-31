@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static operations guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Run codex exec as parallel background workers with reliable log, PID, and exit-code capture plus a watcher that reports DONE, FAILED, or STALL."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Running codex exec as parallel background workers (with stall detection)">
+    <meta
+      property="og:description"
+      content="A shell-first pattern for launching, observing, and classifying non-interactive Codex workers."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/how-to-run-codex-exec-in-parallel-background-workers.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/how-to-run-codex-exec-in-parallel-background-workers.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Running codex exec as parallel background workers (with stall detection)</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Running codex exec as parallel background workers (with stall detection)",
+        "description": "Run codex exec as parallel background workers with reliable log, PID, and exit-code capture plus a watcher that reports DONE, FAILED, or STALL.",
+        "datePublished": "2026-09-01",
+        "dateModified": "2026-09-01",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/how-to-run-codex-exec-in-parallel-background-workers.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#launcher">Launch</a>
+          <a class="nav-link" href="#watcher">Watch</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#traps"
+          >
+            Troubleshoot
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Codex CLI operations guide</p>
+            <h1>Running codex exec as parallel background workers (with stall detection)</h1>
+            <p class="article-dek">
+              Give every worker its own prompt, process ID, append-only log,
+              and atomic exit file. A small watcher can then separate completed
+              work from failures and workers that are alive but no longer
+              producing evidence.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-01">September 1, 2026</time></span>
+              <span>11 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#flags">Choose non-interactive flags</a></li>
+              <li><a href="#launcher">Launch background workers</a></li>
+              <li><a href="#watcher">Detect done, failed, or stalled</a></li>
+              <li><a href="#traps">Avoid common traps</a></li>
+              <li><a href="#operations">Operate the pool safely</a></li>
+              <li><a href="#stall-review">Review a stall before retrying</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Do not treat a background PID as proof that a Codex task is
+                healthy. Start each <span class="inline-code">codex exec</span>
+                invocation through a wrapper that writes
+                <span class="inline-code">worker.log</span>,
+                <span class="inline-code">worker.pid</span>, and
+                <span class="inline-code">worker.exit</span>. Write the exit
+                code through a temporary file and rename it only after Codex
+                returns, so readers never observe a half-written result.
+              </p>
+              <p>
+                Classify a worker as DONE when its exit file contains zero,
+                FAILED when the exit code is nonzero or the PID vanished before
+                an exit file appeared, and STALL when the process is alive but
+                its log has not changed for a chosen threshold. STALL is a
+                warning for inspection, not proof that the model is dead.
+              </p>
+            </section>
+
+            <section id="flags">
+              <h2>Choose explicit non-interactive flags</h2>
+              <p>
+                <span class="inline-code">codex exec</span> runs without the
+                terminal UI. The current CLI streams progress to standard error
+                and prints the final agent message to standard output. For a
+                worker that may edit its repository, make the working root and
+                sandbox explicit instead of inheriting whichever directory and
+                configuration the parent shell happens to have.
+              </p>
+              <pre class="article-code"><code>codex exec \
+  --cd "/absolute/path/to/repository" \
+  --sandbox workspace-write \
+  --color never \
+  --output-last-message "/absolute/path/to/run/final.md" \
+  "Run the focused task, verify it, and report changed files."</code></pre>
+              <p>
+                Use <span class="inline-code">--sandbox read-only</span> for
+                analysis workers and
+                <span class="inline-code">--sandbox workspace-write</span> only
+                for workers that must edit. Avoid
+                <span class="inline-code">danger-full-access</span> unless an
+                external container or disposable runner supplies the real
+                security boundary. <span class="inline-code">--ephemeral</span>
+                is useful when saved session rollout files are unnecessary.
+              </p>
+              <p>
+                If another program needs event-level output, add
+                <span class="inline-code">--json</span> and keep stdout as an
+                unmodified JSONL file. Do not merge stderr into that file; one
+                diagnostic line would make it invalid JSONL. The simpler
+                launcher below deliberately combines both streams into a human
+                log, while <span class="inline-code">-o</span> preserves the
+                final response separately.
+              </p>
+            </section>
+
+            <section id="launcher">
+              <h2>Launch workers with durable evidence</h2>
+              <p>
+                Save this as <span class="inline-code">run-worker.sh</span>.
+                It validates the repository and prompt before starting, records
+                unambiguous start and exit markers, and writes the exit status
+                atomically. Each worker gets a separate directory, so concurrent
+                processes never append to the same files.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -u
+
+id=$1
+repo=$2
+prompt_file=$3
+run_root=${RUN_ROOT:-"$PWD/.codex-runs"}
+run_dir="$run_root/$id"
+log_file="$run_dir/worker.log"
+exit_file="$run_dir/worker.exit"
+
+mkdir -p "$run_dir"
+
+if ! git -C "$repo" rev-parse --is-inside-work-tree &gt;/dev/null 2&gt;&amp;1; then
+  printf 'Not a Git worktree: %s\n' "$repo" &gt;"$log_file"
+  printf '64\n' &gt;"$exit_file"
+  exit 64
+fi
+
+if [[ ! -s "$prompt_file" ]]; then
+  printf 'Prompt is missing or empty: %s\n' "$prompt_file" &gt;"$log_file"
+  printf '66\n' &gt;"$exit_file"
+  exit 66
+fi
+
+{
+  printf '__CODEX_START__=%s\n' "$(date -u +%FT%TZ)"
+  set +e
+  codex exec \
+    --cd "$repo" \
+    --sandbox workspace-write \
+    --color never \
+    --output-last-message "$run_dir/final.md" \
+    - &lt;"$prompt_file"
+  rc=$?
+  set -e
+  printf '__CODEX_EXIT__=%s\n' "$rc"
+  printf '%s\n' "$rc" &gt;"$exit_file.tmp"
+  mv "$exit_file.tmp" "$exit_file"
+  exit "$rc"
+} &gt;"$log_file" 2&gt;&amp;1</code></pre>
+              <p>
+                Launch it with <span class="inline-code">nohup</span> when the
+                workers must survive a closed terminal. Capture
+                <span class="inline-code">$!</span> immediately; after another
+                background command starts, it refers to the newer process.
+              </p>
+              <pre class="article-code"><code>mkdir -p prompts .codex-runs
+
+nohup ./run-worker.sh api /srv/app prompts/api.txt &gt;/dev/null 2&gt;&amp;1 &amp;
+printf '%s\n' "$!" &gt; .codex-runs/api/worker.pid
+
+nohup ./run-worker.sh tests /srv/app prompts/tests.txt &gt;/dev/null 2&gt;&amp;1 &amp;
+printf '%s\n' "$!" &gt; .codex-runs/tests/worker.pid
+
+nohup ./run-worker.sh docs /srv/app prompts/docs.txt &gt;/dev/null 2&gt;&amp;1 &amp;
+printf '%s\n' "$!" &gt; .codex-runs/docs/worker.pid</code></pre>
+              <p>
+                Parallel writers should have disjoint file ownership. If the API
+                and test workers can both edit the same module, give one worker
+                read-only review responsibility or place them in separate Git
+                worktrees. Concurrency does not resolve merge conflicts; it only
+                makes them arrive sooner.
+              </p>
+            </section>
+
+            <section id="watcher">
+              <h2>Distinguish DONE, FAILED, and STALL</h2>
+              <p>
+                The watcher below is portable across macOS and GNU/Linux. It
+                checks terminal evidence first, then process liveness, then log
+                inactivity. Set the threshold longer than normal silent model or
+                tool calls; fifteen minutes is a practical starting point for
+                small repository tasks.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -u
+
+run_root=${RUN_ROOT:-"$PWD/.codex-runs"}
+stall_after=${STALL_AFTER_SECONDS:-900}
+now=$(date +%s)
+
+mtime() {
+  if stat -f %m "$1" &gt;/dev/null 2&gt;&amp;1; then
+    stat -f %m "$1"          # macOS/BSD
+  else
+    stat -c %Y "$1"          # GNU/Linux
+  fi
+}
+
+for dir in "$run_root"/*; do
+  [[ -d "$dir" ]] || continue
+  id=${dir##*/}
+  pid_file="$dir/worker.pid"
+  log_file="$dir/worker.log"
+  exit_file="$dir/worker.exit"
+
+  if [[ -s "$exit_file" ]]; then
+    read -r rc &lt;"$exit_file"
+    if [[ "$rc" == 0 ]]; then
+      printf '%-16s DONE    exit=0\n' "$id"
+    else
+      printf '%-16s FAILED  exit=%s\n' "$id" "$rc"
+    fi
+    continue
+  fi
+
+  if [[ ! -s "$pid_file" ]]; then
+    printf '%-16s FAILED  missing pid and exit evidence\n' "$id"
+    continue
+  fi
+
+  read -r pid &lt;"$pid_file"
+  if ! kill -0 "$pid" 2&gt;/dev/null; then
+    printf '%-16s FAILED  process vanished before exit capture\n' "$id"
+    continue
+  fi
+
+  changed=$(mtime "$log_file" 2&gt;/dev/null || printf '%s' "$now")
+  idle=$((now - changed))
+  if (( idle &gt;= stall_after )); then
+    printf '%-16s STALL   alive, log idle=%ss\n' "$id" "$idle"
+  else
+    printf '%-16s RUNNING alive, log idle=%ss\n' "$id" "$idle"
+  fi
+done</code></pre>
+              <p>
+                Run <span class="inline-code">watch -n 10 ./watch-workers.sh</span>
+                on systems with <span class="inline-code">watch</span>, or call
+                the script from a short shell loop. Before killing a STALL,
+                inspect its last log lines and process state:
+              </p>
+              <pre class="article-code"><code>tail -n 80 .codex-runs/api/worker.log
+pid=$(cat .codex-runs/api/worker.pid)
+ps -o pid=,ppid=,etime=,state=,command= -p "$pid"</code></pre>
+              <p>
+                A long tool call can legitimately produce no output. Escalate
+                only when the inactivity exceeds the task's normal latency and
+                the log shows no pending operation worth preserving.
+              </p>
+            </section>
+
+            <section id="traps">
+              <h2>Common traps that look like worker failures</h2>
+
+              <h3>The repository or trust check fails</h3>
+              <p>
+                Codex expects to run inside a Git repository unless
+                <span class="inline-code">--skip-git-repo-check</span> is used.
+                Prefer fixing <span class="inline-code">--cd</span> and the
+                checkout path; skipping the check can hide a worker launched in
+                the wrong directory. Project-scoped
+                <span class="inline-code">.codex/config.toml</span> is loaded
+                only for a trusted project. Review and trust the intended
+                repository interactively before unattended runs that depend on
+                that local configuration.
+              </p>
+
+              <h3>The sandbox has no network</h3>
+              <p>
+                Workspace write access does not imply outbound network access.
+                A worker may edit files successfully and then appear stuck while
+                a package download, API request, or remote Git operation is
+                blocked. Prefer installing dependencies before the worker. If
+                network is genuinely required, scope it explicitly in Codex
+                configuration instead of switching off the sandbox:
+              </p>
+              <pre class="article-code"><code>codex exec \
+  --sandbox workspace-write \
+  -c sandbox_workspace_write.network_access=true \
+  --cd "$repo" \
+  - &lt;"$prompt_file"</code></pre>
+
+              <h3>The success marker lies</h3>
+              <p>
+                This pattern emits a marker only after success, so a missing
+                marker cannot distinguish failure, termination, or lost output:
+              </p>
+              <pre class="article-code"><code># Fragile: echo never runs when codex exits nonzero
+codex exec "task" &amp;&amp; echo DONE
+
+# Correct: capture immediately, then emit the actual status
+set +e
+codex exec "task"
+rc=$?
+printf '__CODEX_EXIT__=%s\n' "$rc"
+exit "$rc"</code></pre>
+              <p>
+                A marker in a log is helpful for humans, but the separate atomic
+                exit file is the machine-readable source of truth.
+              </p>
+            </section>
+
+            <section id="operations">
+              <h2>Operate the worker pool safely</h2>
+              <ol>
+                <li>Give each worker a bounded goal, allowed files, and a verification command.</li>
+                <li>Use unique run IDs and never reuse a directory until its evidence is archived.</li>
+                <li>Cap concurrency according to API limits, CPU, memory, and repository overlap.</li>
+                <li>Inspect the diff and tests locally; an exit code of zero proves the process completed, not that the change is correct.</li>
+                <li>On interruption, signal the recorded PID, wait, and only then force termination if the process ignores a normal stop.</li>
+              </ol>
+              <pre class="article-code"><code>pid=$(cat .codex-runs/api/worker.pid)
+kill -TERM "$pid"
+
+# After a reasonable grace period, confirm it is still the intended process.
+ps -p "$pid" -o pid=,command=</code></pre>
+              <p>
+                Finally, treat STALL as an operational decision point. The useful
+                question is not “is the PID alive?” but “has this worker produced
+                new evidence, and will waiting change the outcome?” That framing
+                prevents both premature kills and background jobs that consume
+                time indefinitely.
+              </p>
+            </section>
+
+            <section id="stall-review">
+              <h2>Review a stall before retrying</h2>
+              <p>
+                A retry is useful only when it changes the condition that made
+                the first attempt stop producing evidence. Before restarting,
+                preserve the run directory and write down four facts: the last
+                meaningful log line, the process elapsed time, the files already
+                changed, and the external operation that may still be pending.
+                Those facts distinguish a slow worker from a repeatable defect.
+                Deleting the log and launching the same prompt removes the best
+                evidence while spending another full run on the same uncertainty.
+              </p>
+              <p>
+                Confirm that the PID still names the expected wrapper. Process
+                identifiers can be reused after a process exits, especially on a
+                busy CI host. The atomic exit file normally closes that race, but
+                a killed wrapper may leave only the old PID. Compare the command,
+                parent, and start time with the recorded run before sending a
+                signal. If they do not match, classify the run as FAILED because
+                its terminal evidence was lost; do not signal the unrelated
+                process that inherited the number.
+              </p>
+              <pre class="article-code"><code>pid=$(cat .codex-runs/api/worker.pid)
+ps -o pid=,ppid=,lstart=,etime=,command= -p "$pid"
+git -C /srv/app status --short
+tail -n 120 .codex-runs/api/worker.log</code></pre>
+              <p>
+                Next, classify the likely wait. Network-denied package installs
+                need a dependency or sandbox change. Two workers editing the
+                same lockfile need serialization or separate worktrees. A test
+                process waiting for input needs a non-interactive flag. A model
+                call that is merely slow may need more time, not a different
+                prompt. Change exactly one material variable for the retry and
+                record it in the new run directory; otherwise the second attempt
+                cannot teach you why the first one failed.
+              </p>
+              <p>
+                Do not resume directly into a repository containing unreviewed
+                partial edits unless continuity is intentional. First inspect
+                <span class="inline-code">git diff</span> and generated files.
+                Either accept that state as the new baseline and tell the retry
+                what already exists, or restore it through a reviewed, recoverable
+                process. A fresh Git worktree is often safer because it preserves
+                the stalled worker's evidence while giving the retry a known
+                commit and an independent write surface.
+              </p>
+              <p>
+                Finally, cap retry count. One changed retry is usually enough to
+                test a diagnosis. If it stalls at the same operation, stop the
+                pool and fix the shared cause—authentication, network policy,
+                repository lock, prompt ambiguity, or an interactive command.
+                More parallel workers amplify a shared blocker; they do not route
+                around it. The operational goal is a trustworthy final state, not
+                the largest number of processes that can remain alive.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://learn.chatgpt.com/docs/non-interactive-mode">
+                    OpenAI: Codex non-interactive mode
+                  </a>
+                </li>
+                <li>
+                  <a href="https://learn.chatgpt.com/docs/developer-commands#codex-exec">
+                    OpenAI: codex exec command reference
+                  </a>
+                </li>
+                <li>
+                  <a href="https://learn.chatgpt.com/docs/config-file/config-reference#configtoml">
+                    OpenAI: Codex configuration reference
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resources</p>
+            <h2 id="resources-title">Use a complete orchestration baseline</h2>
+            <p>
+              Start with the free templates, or read the full operating system
+              for parallel coding agents in the book.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a
+              class="action action-primary"
+              href="https://github.com/soul-sol/claude-code-orchestration-ko"
+            >
+              Get the free templates
+            </a>
+            <a
+              class="action action-primary"
+              href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration"
+            >
+              Read the orchestration book
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
