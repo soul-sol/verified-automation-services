@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static background-agent operations guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Detect whether a background AI agent is DONE, FAILED, RUNNING, or stalled using per-worker log, PID, exit, and marker files plus a portable watcher."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Stall detection for background AI agents: DONE, FAILED, or just stuck?">
+    <meta
+      property="og:description"
+      content="A shell protocol and watcher that classify background agent runs without trusting a PID or a misleading log tail."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/stall-detection-for-background-ai-agents.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/stall-detection-for-background-ai-agents.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Stall detection for background AI agents: DONE, FAILED, or just stuck?</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Stall detection for background AI agents: DONE, FAILED, or just stuck?",
+        "description": "Detect whether a background AI agent is DONE, FAILED, RUNNING, or stalled using per-worker log, PID, exit, and marker files plus a portable watcher.",
+        "datePublished": "2026-09-01",
+        "dateModified": "2026-09-01",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/stall-detection-for-background-ai-agents.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#protocol">Protocol</a>
+          <a class="nav-link" href="#watcher">Watcher</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#traps"
+          >
+            Avoid traps
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Background agent operations</p>
+            <h1>Stall detection for background AI agents: DONE, FAILED, or just stuck?</h1>
+            <p class="article-dek">
+              A live PID proves only that a process with that number exists.
+              Classify agent runs from durable terminal evidence first, then
+              liveness, then log inactivity—and keep every worker's markers
+              separate.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-01">September 1, 2026</time></span>
+              <span>13 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#protocol">The log/PID/exit protocol</a></li>
+              <li><a href="#markers">One marker per worker</a></li>
+              <li><a href="#launcher">Launch with atomic evidence</a></li>
+              <li><a href="#watcher">Walk through the watcher</a></li>
+              <li><a href="#traps">Avoid the log-tail echo trap</a></li>
+              <li><a href="#respond">Respond without destroying evidence</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Give each background AI worker its own directory containing
+                <span class="inline-code">worker.log</span>,
+                <span class="inline-code">worker.pid</span>, and
+                <span class="inline-code">worker.exit</span>. Write the PID
+                immediately after launch. Write the exit code to a temporary
+                file and rename it after the agent command returns. The watcher
+                reads the exit file before it considers the PID or log age.
+              </p>
+              <p>
+                Report DONE only for an exit value of zero, FAILED for a
+                nonzero exit or a vanished process with no exit evidence,
+                RUNNING for a live process with recent output, and STALL for a
+                live process whose log has been idle longer than a task-specific
+                threshold. STALL is a prompt to inspect; it is not proof that a
+                model call is dead.
+              </p>
+            </section>
+
+            <section id="protocol">
+              <h2>Build a protocol around terminal evidence</h2>
+              <p>
+                Background jobs fail in awkward places: before the agent starts,
+                during a tool call, after the agent finishes but before the
+                wrapper records status, or when the parent shell disappears.
+                No single file covers all states. The three-file protocol makes
+                each signal narrow and auditable.
+              </p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>What each worker file proves</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">File</th>
+                      <th scope="col">Meaning</th>
+                      <th scope="col">Does not prove</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="inline-code">worker.log</span></td>
+                      <td>Observable output and its last change time</td>
+                      <td>Success or current process identity</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">worker.pid</span></td>
+                      <td>The wrapper PID captured at launch</td>
+                      <td>That the same process is still alive later</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">worker.exit</span></td>
+                      <td>The wrapper reached terminal status</td>
+                      <td>That the produced code is correct</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <pre class="article-code"><code>.agent-runs/
+├── api-review/
+│   ├── task.md
+│   ├── worker.log
+│   ├── worker.pid
+│   └── worker.exit
+├── test-fix/
+│   ├── task.md
+│   ├── worker.log
+│   ├── worker.pid
+│   └── worker.exit
+└── docs-pass/
+    ├── task.md
+    ├── worker.log
+    ├── worker.pid
+    └── worker.exit</code></pre>
+              <p>
+                Store the wrapper PID, not an arbitrary descendant discovered
+                later with <span class="inline-code">pgrep</span>. The wrapper
+                owns exit capture and should forward termination to its child.
+                A production-grade supervisor may use process groups, cgroups,
+                or a service manager; the file protocol remains useful as the
+                human-readable run receipt.
+              </p>
+            </section>
+
+            <section id="markers">
+              <h2>Use one marker namespace per worker</h2>
+              <p>
+                A shared <span class="inline-code">DONE</span> file creates a
+                race. The first completed worker makes the whole pool appear
+                finished. A shared log is almost as bad: interleaved output
+                makes the last line belong to whichever process wrote last,
+                not the worker you are diagnosing.
+              </p>
+              <pre class="article-code"><code># Broken: three workers can overwrite the same terminal marker.
+worker api   &amp;&amp; touch .agent-runs/DONE &amp;
+worker tests &amp;&amp; touch .agent-runs/DONE &amp;
+worker docs  &amp;&amp; touch .agent-runs/DONE &amp;
+
+# Correct shape: terminal evidence lives under the worker ID.
+for id in api tests docs; do
+  mkdir -p ".agent-runs/$id"
+  ./run-agent.sh "$id" &amp;
+  printf '%s\n' "$!" &gt;".agent-runs/$id/worker.pid"
+done</code></pre>
+              <p>
+                Worker IDs must also be safe path components. Reject empty IDs,
+                slashes, and traversal sequences instead of letting a prompt or
+                task title choose a filesystem path.
+              </p>
+              <pre class="article-code"><code>id=${1-}
+if [[ ! "$id" =~ ^[a-z0-9][a-z0-9._-]{0,63}$ ]]; then
+  printf 'invalid worker id: %q\n' "$id" &gt;&amp;2
+  exit 64
+fi</code></pre>
+            </section>
+
+            <section id="launcher">
+              <h2>Launch the agent and capture exit atomically</h2>
+              <p>
+                Save the following as <span class="inline-code">run-agent.sh</span>.
+                Replace <span class="inline-code">AGENT_COMMAND</span> with an
+                explicitly configured non-interactive CLI. Do not use
+                <span class="inline-code">eval</span> to assemble a command
+                from task text.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -u
+
+id=${1-}
+root=${RUN_ROOT:-"$PWD/.agent-runs"}
+dir="$root/$id"
+log="$dir/worker.log"
+exit_file="$dir/worker.exit"
+
+mkdir -p "$dir"
+rm -f "$exit_file" "$exit_file.tmp"
+
+{
+  printf '__AGENT_START__=%s\n' "$(date -u +%FT%TZ)"
+  set +e
+  AGENT_COMMAND --prompt-file "$dir/task.md"
+  rc=$?
+  set -e
+  printf '__AGENT_EXIT__=%s\n' "$rc"
+  printf '%s\n' "$rc" &gt;"$exit_file.tmp"
+  mv "$exit_file.tmp" "$exit_file"
+  exit "$rc"
+} &gt;"$log" 2&gt;&amp;1</code></pre>
+              <p>
+                The rename prevents the watcher from reading an empty or
+                partially written exit file. It is atomic when both paths are
+                on the same filesystem. Remove stale exit files before a new
+                run, or better, use a new immutable run ID rather than reusing
+                the directory. Capture <span class="inline-code">$!</span>
+                immediately after backgrounding the wrapper.
+              </p>
+              <pre class="article-code"><code>id="api-review-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p ".agent-runs/$id"
+cp prompts/api-review.md ".agent-runs/$id/task.md"
+
+nohup ./run-agent.sh "$id" &gt;/dev/null 2&gt;&amp;1 &amp;
+pid=$!
+printf '%s\n' "$pid" &gt;".agent-runs/$id/worker.pid"
+printf 'started id=%s pid=%s\n' "$id" "$pid"</code></pre>
+            </section>
+
+            <section id="watcher">
+              <h2>Walk through a portable watcher</h2>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -u
+
+root=${RUN_ROOT:-"$PWD/.agent-runs"}
+stall_after=${STALL_AFTER_SECONDS:-900}
+now=$(date +%s)
+
+mtime() {
+  if stat -f %m "$1" &gt;/dev/null 2&gt;&amp;1; then
+    stat -f %m "$1"          # macOS and BSD
+  else
+    stat -c %Y "$1"          # GNU/Linux
+  fi
+}
+
+for dir in "$root"/*; do
+  [[ -d "$dir" ]] || continue
+  id=${dir##*/}
+  pid_file="$dir/worker.pid"
+  log_file="$dir/worker.log"
+  exit_file="$dir/worker.exit"
+
+  if [[ -s "$exit_file" ]]; then
+    read -r rc &lt;"$exit_file"
+    if [[ "$rc" =~ ^[0-9]+$ ]] &amp;&amp; (( rc == 0 )); then
+      printf '%-28s DONE    exit=0\n' "$id"
+    elif [[ "$rc" =~ ^[0-9]+$ ]]; then
+      printf '%-28s FAILED  exit=%s\n' "$id" "$rc"
+    else
+      printf '%-28s FAILED  malformed exit file\n' "$id"
+    fi
+    continue
+  fi
+
+  if [[ ! -s "$pid_file" ]]; then
+    printf '%-28s FAILED  missing pid and exit\n' "$id"
+    continue
+  fi
+
+  read -r pid &lt;"$pid_file"
+  if [[ ! "$pid" =~ ^[0-9]+$ ]] || ! kill -0 "$pid" 2&gt;/dev/null; then
+    printf '%-28s FAILED  wrapper vanished\n' "$id"
+    continue
+  fi
+
+  if [[ ! -e "$log_file" ]]; then
+    printf '%-28s RUNNING live, no log yet\n' "$id"
+    continue
+  fi
+
+  changed=$(mtime "$log_file")
+  idle=$((now - changed))
+  if (( idle &gt;= stall_after )); then
+    printf '%-28s STALL   live, idle=%ss\n' "$id" "$idle"
+  else
+    printf '%-28s RUNNING live, idle=%ss\n' "$id" "$idle"
+  fi
+done</code></pre>
+              <p>
+                The order is the important part. An exit file wins even if the
+                PID was recycled. A missing process without terminal evidence
+                is FAILED, because the supervisor cannot prove a clean result.
+                Only a live process reaches the inactivity calculation. The
+                watcher handles both BSD and GNU
+                <span class="inline-code">stat</span> syntaxes and rejects a
+                malformed exit file rather than treating arbitrary text as zero.
+              </p>
+              <p>
+                Choose the threshold from observed task latency. A repository
+                scan might be suspicious after five quiet minutes; a large test
+                suite or remote model request may legitimately remain silent
+                longer. Add a hard runtime ceiling separately. Inactivity and
+                total elapsed time answer different questions.
+              </p>
+              <h3>Separate activity, progress, and completion</h3>
+              <p>
+                A changing log proves activity, not progress. An agent can emit
+                retries, animated status lines, or the same recoverable error
+                indefinitely while the modification time stays fresh. If the
+                CLI offers structured events, record a second timestamp for the
+                last meaningful event: tool completion, file change, test
+                result, or phase transition. Keep the raw log timestamp too;
+                the difference reveals a process that is noisy but stationary.
+              </p>
+              <p>
+                Do not manufacture activity by touching the log from the
+                watcher. That makes the monitor reset its own inactivity clock.
+                If a wrapper needs a heartbeat during a silent remote request,
+                write it to a separate
+                <span class="inline-code">worker.heartbeat</span> file. The
+                wrapper or supervised child—not the watcher—must own that
+                heartbeat, and its interval and meaning should be documented.
+                A heartbeat proves the wrapper loop is scheduled; it still does
+                not prove the remote operation is making progress.
+              </p>
+              <p>
+                Completion remains a distinct state. Neither a fresh heartbeat
+                nor a newly appended log line can replace
+                <span class="inline-code">worker.exit</span>. If the worker
+                reports a semantic final message but the process does not exit,
+                the watcher should continue to show RUNNING or STALL. Fix the
+                CLI invocation or shutdown path instead of teaching the watcher
+                to scrape prose for a success phrase.
+              </p>
+              <h3>Add a separate maximum runtime</h3>
+              <p>
+                Some failures never become inactive: a fast retry loop can
+                append errors forever. Record the start epoch in a metadata file
+                or derive it from an immutable run directory, then compare total
+                elapsed time with a hard ceiling. Call the result TIMEOUT or
+                include it as a reason under STALL; do not confuse it with a
+                nonzero agent exit that was actually captured. The operator can
+                then decide whether to signal the process based on task policy.
+              </p>
+              <p>
+                Thresholds should be per task family. A five-minute ceiling may
+                suit a formatter worker and be destructive for an integration
+                test suite. Start from observed successful durations, add a
+                deliberate margin, and review outliers. Automatic termination
+                is safest only when the wrapper forwards signals, preserves
+                partial output, and records that the supervisor—not the agent—
+                caused the final interruption.
+              </p>
+            </section>
+
+            <section id="traps">
+              <h2>Avoid the log-tail echo trap</h2>
+              <p>
+                A common monitoring loop prints a label, then tails a log. When
+                the log is empty or missing, the label becomes the last visible
+                line. Another script greps that combined output and mistakes its
+                own word “DONE” or “FAILED” for worker evidence.
+              </p>
+              <pre class="article-code"><code># Broken: monitor text and agent evidence share one stream.
+echo "DONE? checking $id"
+tail -n 20 ".agent-runs/$id/worker.log" 2&gt;/dev/null
+
+# Also broken: a prompt or model response can contain the marker.
+if tail -n 20 "$log" | grep -q 'DONE'; then
+  echo "$id DONE"
+fi
+
+# Correct: classify from the exit file, then show a clearly delimited tail.
+printf '%s\n' "--- $id diagnostic tail (not status) ---" &gt;&amp;2
+tail -n 20 "$log" &gt;&amp;2 || true</code></pre>
+              <p>
+                Logs are untrusted text. They may quote the task packet, print
+                source code containing “DONE,” repeat a previous error, or end
+                before buffered output is flushed. Use log modification time as
+                an activity hint and the atomic exit file as terminal state.
+                If you emit structured events, keep them on a separate channel
+                or validate their schema and worker identity.
+              </p>
+            </section>
+
+            <section id="respond">
+              <h2>Respond to a stall without erasing the cause</h2>
+              <ol>
+                <li>Record the current watcher output, log tail, elapsed time, and process command.</li>
+                <li>Inspect whether a child process is waiting for input, network, a lock, or a permission prompt.</li>
+                <li>Review partial repository changes before sending a signal.</li>
+                <li>Try a normal termination first and wait for the wrapper to record an exit.</li>
+                <li>For a retry, create a new run directory and change one material condition.</li>
+              </ol>
+              <pre class="article-code"><code>dir=.agent-runs/api-review-20260901T090000Z
+pid=$(cat "$dir/worker.pid")
+
+ps -o pid=,ppid=,lstart=,etime=,state=,command= -p "$pid"
+tail -n 100 "$dir/worker.log"
+git status --short
+
+# Confirm the command is still the intended wrapper before signaling.
+kill -TERM "$pid"</code></pre>
+              <p>
+                PID reuse is real. Before sending a signal, compare the command
+                and start time with the run. If the wrapper is gone and the PID
+                belongs to another process, do not kill it. Classify the agent
+                run as FAILED because its exit evidence was lost, preserve the
+                directory, and fix the wrapper or supervisor before retrying.
+              </p>
+              <p>
+                Finally, DONE is process evidence, not acceptance evidence. A
+                zero exit means the CLI and wrapper completed. The coordinator
+                must still inspect the diff, run the declared acceptance command,
+                and decide whether the work satisfies the task. Keep those
+                review results next to the run rather than overwriting the
+                original log.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://www.gnu.org/software/bash/manual/html_node/Job-Control-Basics.html">
+                    GNU Bash manual: job control basics
+                  </a>
+                </li>
+                <li>
+                  <a href="https://pubs.opengroup.org/onlinepubs/9799919799/utilities/kill.html">
+                    POSIX: kill utility and process signaling
+                  </a>
+                </li>
+                <li>
+                  <a href="how-to-run-codex-exec-in-parallel-background-workers.html">
+                    Related guide: launching parallel CLI workers safely
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" id="resources" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resources</p>
+            <h2 id="resources-title">Operate workers with durable evidence</h2>
+            <p>
+              Start with the free orchestration repository. The book expands
+              the protocol into task packets, commander/worker boundaries,
+              retries, reviews, and multi-worker operating routines.
+            </p>
+            <p>
+              <a href="https://github.com/soul-sol/claude-code-orchestration-ko">
+                Free Claude Code orchestration repository
+              </a>
+            </p>
+          </div>
+          <a
+            class="action action-primary"
+            href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration"
+          >
+            View the orchestration book
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

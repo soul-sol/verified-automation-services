@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static Claude Code instruction design guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Write CLAUDE.md rules agents can apply: each rule gets a trigger, check, stop condition, and evidence requirement, plus a fresh-session probe."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="CLAUDE.md rules agents actually follow (and the ones they ignore)">
+    <meta
+      property="og:description"
+      content="Turn vague preferences into observable agent behavior with trigger, check, stop, and evidence clauses."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/claude-md-rules-that-agents-actually-follow.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/claude-md-rules-that-agents-actually-follow.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>CLAUDE.md rules agents actually follow (and the ones they ignore)</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "CLAUDE.md rules agents actually follow (and the ones they ignore)",
+        "description": "Write CLAUDE.md rules agents can apply: each rule gets a trigger, check, stop condition, and evidence requirement, plus a fresh-session probe.",
+        "datePublished": "2026-09-01",
+        "dateModified": "2026-09-01",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/claude-md-rules-that-agents-actually-follow.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#anatomy">Rule anatomy</a>
+          <a class="nav-link" href="#examples">Examples</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#probe"
+          >
+            Probe a session
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Claude Code instruction design</p>
+            <h1>CLAUDE.md rules agents actually follow (and the ones they ignore)</h1>
+            <p class="article-dek">
+              Effective project instructions describe when a rule activates,
+              what observable check to perform, when to stop, and what evidence
+              must be reported. Vague values and giant policy catalogs rarely
+              survive contact with a real task.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-01">September 1, 2026</time></span>
+              <span>13 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#anatomy">The four-part rule</a></li>
+              <li><a href="#ignored">Why rules get ignored</a></li>
+              <li><a href="#examples">Five worked examples</a></li>
+              <li><a href="#probe">Fresh-session probe</a></li>
+              <li><a href="#maintenance">Keep the file usable</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Write a CLAUDE.md rule as an executable decision: “When X is
+                true, inspect Y; if Z is missing or fails, stop; report W.”
+                This trigger + check + stop + evidence structure gives the agent
+                a moment to apply the rule and gives you a way to tell whether
+                it did. “Be careful,” “follow best practices,” and “always
+                verify everything” provide neither.
+              </p>
+              <p>
+                Keep universal rules short, put path-specific requirements near
+                the code they govern, and test important instructions in a new
+                Claude Code process. A rule that the current conversation can
+                repeat from recent context has not yet proved that a future
+                session loads or follows it.
+              </p>
+            </section>
+
+            <section id="anatomy">
+              <h2>The anatomy of a rule agents can execute</h2>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Four clauses that turn prose into a control</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Clause</th>
+                      <th scope="col">Question it answers</th>
+                      <th scope="col">Concrete form</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Trigger</td>
+                      <td>When does this apply?</td>
+                      <td>“Before editing a database migration…”</td>
+                    </tr>
+                    <tr>
+                      <td>Check</td>
+                      <td>What must the agent inspect or run?</td>
+                      <td>“Read the migration wrapper and run…”</td>
+                    </tr>
+                    <tr>
+                      <td>Stop</td>
+                      <td>Which result blocks continuation?</td>
+                      <td>“If rollback is undefined, do not edit.”</td>
+                    </tr>
+                    <tr>
+                      <td>Evidence</td>
+                      <td>What proves compliance?</td>
+                      <td>“Report the command and exit code.”</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                Not every preference needs all four clauses. “Use two spaces in
+                YAML” is easy to verify with a formatter. Add the full anatomy
+                where mistakes are costly, invisible, or tempting to explain
+                away: deployments, migrations, generated files, credentials,
+                background processes, and completion claims.
+              </p>
+              <h3>Make the trigger observable</h3>
+              <p>
+                Triggers should name an event the agent can detect from the
+                request, planned command, or changed paths. “When appropriate”
+                delegates the entire policy decision back to the model. “Before
+                changing files under <span class="inline-code">infra/</span>”
+                can be checked against a write plan and later against the diff.
+                Include user vocabulary when it matters: deploy, publish,
+                release, and push live may describe the same boundary.
+              </p>
+              <h3>Prefer one decisive check</h3>
+              <p>
+                A rule with twelve mandatory commands is likely to be applied
+                selectively, especially when half do not relate to the current
+                change. Lead with the smallest check that can block an unsafe
+                action or falsify a completion claim. Put broader test matrices
+                in a script so the agent executes one stable interface. The
+                script can evolve without forcing every instruction file to
+                duplicate its internals.
+              </p>
+              <h3>Stop at the boundary the agent cannot resolve</h3>
+              <p>
+                “Ask for help if needed” is not a stop condition. Name the
+                missing fact: target environment, rollback behavior, credential
+                presence, owner approval, or acceptance result. Also say what
+                remains allowed. A deployment blocked on credentials may still
+                permit a local build and artifact checksum, but it must not be
+                reported as a release. Precise stops prevent both reckless
+                continuation and unnecessary abandonment of safe work.
+              </p>
+              <h3>Require compact, falsifiable evidence</h3>
+              <p>
+                Evidence should let a reviewer independently check the claim.
+                Command, exit code, relevant artifact, and skipped case are
+                usually enough. Avoid demanding full logs in chat; preserve
+                them in a file and report the path plus the first actionable
+                failure. “Tests passed” is a conclusion. “Command X exited zero
+                and covered cases A through C” is an inspectable claim.
+              </p>
+              <pre class="article-code"><code>## Database migrations
+
+- Trigger: Before creating or editing a production migration.
+- Check: Read `docs/database-migrations.md` and identify the
+  transaction boundary, lock behavior, and rollback command.
+- Stop: If rollback or online-change behavior is undefined, do not
+  write the migration; report the missing decision.
+- Evidence: In the final response, name the migration check command,
+  its exit code, and the rollback path.</code></pre>
+            </section>
+
+            <section id="ignored">
+              <h2>Rules agents tend to ignore</h2>
+              <p>
+                Vague aspirations lose against the immediate task. “Write
+                production-quality code” conflicts with no concrete action, so
+                the agent can believe it complied after any plausible patch.
+                Absolute rules with undefined scope are also weak: “always run
+                all tests” is unreasonable for a documentation typo in a large
+                monorepo, encouraging selective interpretation.
+              </p>
+              <p>
+                Long inventories of obvious advice compete with the few rules
+                that matter. Contradictions are worse: one section says never
+                modify generated files, another says update all affected files,
+                and neither names precedence. Finally, commands that cannot run
+                in a clean checkout train the agent to skip or hand-wave them.
+                A trustworthy CLAUDE.md reflects the repository that exists,
+                not the workflow you wish existed.
+              </p>
+              <pre class="article-code"><code># Weak
+- Be secure and test thoroughly.
+- Never make destructive changes.
+- Follow our architecture.
+
+# Stronger
+- When changing `src/auth/**`, run `npm test -- auth`.
+- If the test command cannot start, stop after capturing the first
+  actionable error; do not claim the auth change is verified.
+- Report the exact command, exit code, and any skipped acceptance case.</code></pre>
+            </section>
+
+            <section id="examples">
+              <h2>Five worked CLAUDE.md examples</h2>
+
+              <h3>1. Keep generated files synchronized</h3>
+              <pre class="article-code"><code>## Generated API clients
+
+- Trigger: When `api/openapi.yaml` changes.
+- Check: Run `npm run generate:client`, then `git diff --exit-code
+  -- src/generated` after committing or staging the expected output.
+- Stop: If generation needs an unavailable tool or changes files
+  outside `src/generated`, stop and report the mismatch.
+- Evidence: List the generator version and changed generated files.</code></pre>
+              <p>
+                This makes “keep generated files current” testable and catches
+                tool-version drift instead of blessing an unexplained diff.
+              </p>
+
+              <h3>2. Protect production deployments</h3>
+              <pre class="article-code"><code>## Deployment boundary
+
+- Trigger: Any request containing deploy, publish, release, or push live.
+- Check: Confirm the named environment and run `./scripts/preflight.sh`.
+- Stop: Do not deploy when the environment is ambiguous, preflight is
+  nonzero, credentials are missing, or the user requested a preview only.
+- Evidence: Report environment, artifact identifier, preflight exit,
+  and the final platform URL. Never print credentials.</code></pre>
+              <p>
+                The trigger includes common synonyms. The stop clause prevents
+                a local build from being reported as a production release.
+              </p>
+
+              <h3>3. Preserve the first failing test</h3>
+              <pre class="article-code"><code>## Test failures
+
+- Trigger: When a required verification command exits nonzero.
+- Check: Preserve the command, exit code, and first actionable failure.
+- Stop: Do not declare completion. Do not rerun unchanged more than once.
+- Evidence: Classify the failure as caused by this change, pre-existing,
+  or environment-required, and cite the file or log containing proof.</code></pre>
+              <p>
+                “Fix all tests” often causes blind loops. This version keeps
+                evidence and forces a changed hypothesis before another run.
+              </p>
+
+              <h3>4. Bound worker delegation</h3>
+              <pre class="article-code"><code>## Subagent use
+
+- Trigger: Before delegating work that can modify files.
+- Check: Declare the worker goal, readable files, writable files, and
+  one acceptance command. Confirm write sets do not overlap.
+- Stop: Do not launch parallel writers with overlapping or unknown scope.
+- Evidence: Review `git diff --name-only` and the acceptance exit code
+  before accepting the worker's result.</code></pre>
+              <p>
+                This rule targets the decision before delegation, where it can
+                prevent a conflict. A reminder to “review agent work” after the
+                fact is too late to prevent overlapping edits.
+              </p>
+
+              <h3>5. Handle secrets by presence only</h3>
+              <pre class="article-code"><code>## Secrets
+
+- Trigger: When a command needs an API key, token, cookie, or password.
+- Check: Test only whether the named variable is set.
+- Stop: If missing, stop at the credential boundary. Never print the
+  value, run `env`, or paste a private configuration file into chat.
+- Evidence: Report only `VARIABLE_NAME=SET` or `VARIABLE_NAME=missing`.
+
+# Safe presence check
+printf 'DEPLOY_TOKEN=%s\n' "${DEPLOY_TOKEN:+SET}"</code></pre>
+              <p>
+                The permitted output is explicit. That closes the common loophole
+                where an agent “checks” a credential by echoing it into logs.
+              </p>
+            </section>
+
+            <section id="probe">
+              <h2>Prove the rule in a fresh session</h2>
+              <p>
+                First verify discovery with Claude Code's
+                <span class="inline-code">/memory</span> command. It shows the
+                instruction files loaded for the current session. Then exit.
+                Start a new process from the directory a teammate would really
+                use, because CLAUDE.md discovery depends on location and scope.
+              </p>
+              <pre class="article-code"><code>cd /absolute/path/to/repository
+claude
+
+# Inside the new session:
+/memory
+
+# Then give a read-only behavioral probe:
+You are asked to edit api/openapi.yaml. Before changing anything,
+state the required check, the condition that makes you stop, and the
+evidence you must report. Do not edit files or run the generator.</code></pre>
+              <p>
+                Score behavior, not recitation. A passing answer identifies the
+                generator, the outside-write stop condition, and the required
+                evidence without inventing a run. Next, use a disposable branch
+                or fixture to exercise one real trigger. For the secret rule,
+                ask for a deployment with the variable absent and confirm the
+                session reports only “missing.” For the test rule, point it at
+                a known failing fixture and confirm it does not claim success.
+              </p>
+              <pre class="article-code"><code># Minimal probe ledger
+date,session_dir,rule,trigger_seen,stop_obeyed,evidence_correct,result
+2026-09-01,/repo,generated-client,yes,yes,yes,PASS
+2026-09-01,/repo/packages/api,test-failure,yes,no,yes,FAIL</code></pre>
+              <p>
+                If the probe fails, repair the layer that caused it. A discovery
+                failure needs a path or import fix. A misunderstood rule needs
+                clearer wording. A rule displaced by a conflict needs explicit
+                precedence. Do not add three more reminders around an ambiguous
+                original; replace it with one sharper control and repeat the
+                fresh-process test.
+              </p>
+              <h3>Use negative probes, not only happy-path questions</h3>
+              <p>
+                A session can summarize a rule correctly and still violate it
+                under pressure to complete a task. Include a probe where the
+                shortest path conflicts with the rule. Offer a production
+                deployment request without naming an environment, a migration
+                without rollback documentation, or a test failure that looks
+                unrelated. A passing session stops at the defined boundary,
+                preserves the permitted evidence, and does not invent missing
+                approval. Run probes only in a safe fixture or read-only mode;
+                instruction testing should not create the risk the instruction
+                is meant to prevent.
+              </p>
+              <p>
+                Repeat a critical probe after moving the file, changing an
+                import, upgrading Claude Code, or restructuring a monorepo.
+                Those changes can alter discovery or scope even though the rule
+                text is untouched. Keep the probe prompt and expected behaviors
+                in version control. This turns a subtle agent regression into a
+                reviewable project change rather than a future surprise.
+              </p>
+            </section>
+
+            <section id="maintenance">
+              <h2>Keep CLAUDE.md small enough to matter</h2>
+              <ol>
+                <li>Keep only instructions that every relevant session needs.</li>
+                <li>Move path-specific rules to scoped rule files where supported.</li>
+                <li>Delete duplicated advice and name precedence for intentional conflicts.</li>
+                <li>Run every documented command from a clean checkout after toolchain changes.</li>
+                <li>Attach a fresh-session probe whenever a rule prevents a costly failure.</li>
+              </ol>
+              <p>
+                Claude Code's documentation explicitly says compliance is not
+                guaranteed, especially for vague or conflicting instructions.
+                Treat CLAUDE.md as one control in a system. Formatters, tests,
+                hooks, permissions, and deployment policy should enforce what
+                can be enforced deterministically. The file should tell the
+                agent when those controls apply and how to surface their result.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://code.claude.com/docs/en/memory">
+                    Claude Code Docs: CLAUDE.md scope, loading, and troubleshooting
+                  </a>
+                </li>
+                <li>
+                  <a href="https://code.claude.com/docs/en/sub-agents">
+                    Claude Code Docs: subagent context and inherited instructions
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/soul-sol/claude-md-patterns">
+                    AI code review prompts: free evidence-seeking examples
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" id="resources" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resource</p>
+            <h2 id="resources-title">Start with rules that demand evidence</h2>
+            <p>
+              The free prompt repository provides adversarial review patterns
+              you can adapt into checks and evidence clauses. A full CLAUDE.md
+              pattern library is coming to the
+              <a href="https://lifestep1.gumroad.com/">same store</a>.
+            </p>
+          </div>
+          <a
+            class="action action-primary"
+            href="https://github.com/soul-sol/ai-code-review-prompts"
+          >
+            Browse the free prompts
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

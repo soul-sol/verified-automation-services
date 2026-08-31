@@ -16,6 +16,12 @@
     <loc>https://soul-sol.github.io/verified-automation-services/ci-reliability-scorecard.html</loc>
   </url>
   <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/claude-code-weekly-limit-strategies.html</loc>
+  </url>
+  <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/claude-md-rules-that-agents-actually-follow.html</loc>
+  </url>
+  <url>
     <loc>https://soul-sol.github.io/verified-automation-services/codex-agents-operations-handbook.html</loc>
   </url>
   <url>
@@ -44,5 +50,8 @@
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/spreadsheet-preflight-ebook.html</loc>
+  </url>
+  <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/stall-detection-for-background-ai-agents.html</loc>
   </url>
 </urlset>

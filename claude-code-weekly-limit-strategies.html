@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static Claude Code operations guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Make a Claude Code weekly limit last with a commander/worker split, bounded delegation, external CLI workers, and measurements that reveal where usage goes."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Making a Claude Code weekly limit last: delegation patterns that actually work">
+    <meta
+      property="og:description"
+      content="Keep Claude on judgment, move bounded execution to workers, and measure every handoff instead of guessing about token savings."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/claude-code-weekly-limit-strategies.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/claude-code-weekly-limit-strategies.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Making a Claude Code weekly limit last: delegation patterns that actually work</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Making a Claude Code weekly limit last: delegation patterns that actually work",
+        "description": "Make a Claude Code weekly limit last with a commander/worker split, bounded delegation, external CLI workers, and measurements that reveal where usage goes.",
+        "datePublished": "2026-09-01",
+        "dateModified": "2026-09-01",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/claude-code-weekly-limit-strategies.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#split">Split roles</a>
+          <a class="nav-link" href="#measure">Measure</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#resources"
+          >
+            Resources
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Claude Code usage strategy</p>
+            <h1>Making a Claude Code weekly limit last: delegation patterns that actually work</h1>
+            <p class="article-dek">
+              Use Claude as the commander that frames decisions, assigns
+              bounded work, and judges evidence. Let workers absorb mechanical
+              exploration and implementation only when the handoff costs less
+              than doing the work directly.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-01">September 1, 2026</time></span>
+              <span>12 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#split">Commander and worker roles</a></li>
+              <li><a href="#never-spend">Protect commander usage</a></li>
+              <li><a href="#native-external">Choose the worker type</a></li>
+              <li><a href="#packet">Write a bounded task packet</a></li>
+              <li><a href="#measure">Measure usage and outcomes</a></li>
+              <li><a href="#weekly-loop">Run the weekly loop</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                A weekly limit lasts longer when the expensive conversation is
+                reserved for work that benefits from continuity and judgment:
+                choosing the goal, resolving ambiguity, defining acceptance
+                criteria, reviewing risky diffs, and deciding whether evidence
+                is sufficient. Repetitive search, log reduction, mechanical
+                edits, fixture generation, and first-pass test execution belong
+                in a bounded worker lane.
+              </p>
+              <p>
+                Native Claude Code subagents protect the main context, but they
+                still consume Claude usage. External CLI workers may move work
+                to another provider or local model, but they add orchestration,
+                security, and verification costs. The right metric is not
+                “agents spawned.” It is commander usage per accepted change,
+                including failed handoffs and review rework.
+              </p>
+            </section>
+
+            <section id="split">
+              <h2>Give the commander judgment, not chores</h2>
+              <p>
+                The commander owns the state that must remain coherent across
+                the whole task. It understands the user request, repository
+                constraints, architectural tradeoffs, and current evidence.
+                Workers receive only one independently testable slice. This is
+                a responsibility boundary, not a model hierarchy: a capable
+                worker can write most of a patch, while the commander remains
+                accountable for accepting it.
+              </p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>A practical commander/worker split</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Commander keeps</th>
+                      <th scope="col">Worker receives</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Goal, non-goals, risk, and final decision</td>
+                      <td>One explicit deliverable with a stop condition</td>
+                    </tr>
+                    <tr>
+                      <td>Architecture and cross-module tradeoffs</td>
+                      <td>Local implementation inside declared files</td>
+                    </tr>
+                    <tr>
+                      <td>Conflict resolution and integration</td>
+                      <td>Focused tests, logs, or a patch artifact</td>
+                    </tr>
+                    <tr>
+                      <td>Security-sensitive or destructive approval</td>
+                      <td>Read-only analysis with redacted inputs</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                A useful test is: can you tell whether the worker succeeded by
+                inspecting files and running one command? If not, the packet is
+                probably too broad. “Improve the backend” forces the commander
+                to reconstruct intent later. “Add validation to these two
+                routes; these four tests must pass; do not change the database”
+                creates reviewable evidence.
+              </p>
+            </section>
+
+            <section id="never-spend">
+              <h2>What not to spend commander tokens on</h2>
+              <p>
+                Do not use the main conversation as a transcript sink. Large
+                test logs, complete directory listings, generated files,
+                dependency install output, and dozens of nearly identical
+                search hits dilute the state that makes the commander useful.
+                Reduce them before they enter the main context.
+              </p>
+              <pre class="article-code"><code># Bad handoff: paste 18,000 lines into the commander.
+npm test &gt; full-test.log 2&gt;&amp;1
+
+# Better: preserve the source, return a focused digest and its location.
+npm test &gt; full-test.log 2&gt;&amp;1
+rc=$?
+{
+  printf 'exit=%s\n' "$rc"
+  rg -n "FAIL|Error:|AssertionError" full-test.log | head -80
+  printf 'full_log=%s\n' "$PWD/full-test.log"
+} &gt; test-summary.txt
+exit "$rc"</code></pre>
+              <p>
+                Also avoid commander turns for formatting-only changes, bulk
+                renames with a deterministic mapping, boilerplate fixtures,
+                initial repository maps, and repeated reruns of an unchanged
+                failure. A worker should return the smallest decision-changing
+                evidence. The commander should not ask “did it work?” when a
+                test exit code, diff, or generated report can answer directly.
+              </p>
+            </section>
+
+            <section id="native-external">
+              <h2>Native subagents versus external CLI workers</h2>
+              <p>
+                Claude Code subagents start in isolated contexts and return a
+                summary to the caller. That makes them excellent for noisy
+                repository exploration, focused review, or a task needing
+                restricted tools. They reduce pollution of the main context;
+                they do not create free Claude usage. A verbose subagent result
+                can even spend more because the worker reads context and the
+                commander then reads its report.
+              </p>
+              <p>
+                External CLI workers are separate processes: another coding
+                agent, a local model, or a deterministic program. They are most
+                useful when they have a separate allocation or are cheap at the
+                delegated task. They should run in a dedicated worktree or own
+                disjoint files, receive no secrets, and leave durable output.
+                Their independence is also their risk: they may not inherit the
+                same rules, permissions, or understanding as Claude Code.
+              </p>
+              <pre class="article-code"><code># Generic external-worker envelope. Replace WORKER_COMMAND explicitly.
+run_id="tests-$(date -u +%Y%m%dT%H%M%SZ)"
+run_dir=".agent-runs/$run_id"
+mkdir -p "$run_dir"
+
+set +e
+WORKER_COMMAND \
+  --prompt "$run_dir/task.md" \
+  &gt;"$run_dir/worker.log" 2&gt;&amp;1
+rc=$?
+set -e
+
+printf '%s\n' "$rc" &gt;"$run_dir/worker.exit.tmp"
+mv "$run_dir/worker.exit.tmp" "$run_dir/worker.exit"
+git diff --stat &gt;"$run_dir/diff-stat.txt"
+exit "$rc"</code></pre>
+              <p>
+                Prefer a native subagent when context isolation is the main
+                benefit and Claude-specific tools or project memory matter.
+                Prefer an external worker when the task is provider-neutral,
+                the external allocation is intentional, and its output can be
+                verified without trusting its narrative. Work directly when
+                the task is a tiny edit or every phase shares the same context;
+                delegation overhead can exceed the saved usage.
+              </p>
+            </section>
+
+            <section id="packet">
+              <h2>Use a task packet that prevents expensive rework</h2>
+              <p>
+                A cheap worker with a vague prompt is expensive. It explores
+                the wrong files, produces an oversized patch, and consumes a
+                commander review cycle. Put the contract in a file so the exact
+                packet and result can be audited.
+              </p>
+              <pre class="article-code"><code># Task: validate webhook timestamps
+
+Goal:
+- Reject requests older than 300 seconds.
+
+Read:
+- src/webhooks/verify.ts
+- test/webhooks/verify.test.ts
+
+Write:
+- src/webhooks/verify.ts
+- test/webhooks/verify.test.ts
+
+Do not:
+- Change dependencies, public response bodies, or unrelated formatting.
+
+Acceptance:
+- npm test -- test/webhooks/verify.test.ts passes.
+- A timestamp at exactly 300 seconds is accepted.
+- A timestamp at 301 seconds is rejected.
+
+Return:
+- Changed files, test exit code, and unresolved risks.
+
+Stop:
+- Stop after one changed retry if the focused test still fails.</code></pre>
+              <p>
+                The boundary case in the acceptance criteria is deliberate. It
+                prevents the worker from choosing semantics silently. The write
+                list limits collisions. The stop rule prevents an autonomous
+                loop from burning both worker capacity and commander attention.
+              </p>
+            </section>
+
+            <section id="measure">
+              <h2>Measure where usage actually goes</h2>
+              <p>
+                Claude Code's <span class="inline-code">/usage</span> command
+                shows plan usage for subscribers and token details for API
+                users. Record a baseline before a substantial task and another
+                value after acceptance. Do not convert subscription bars into
+                invented token counts; store the units the interface provides.
+              </p>
+              <pre class="article-code"><code>date,task,commander_before,commander_after,worker,attempts,accepted,rework_min
+2026-09-01,webhook-age,42%,47%,external-cli,1,yes,6
+2026-09-02,repo-map,47%,49%,native-explore,1,yes,2
+2026-09-03,rename-api,49%,55%,none,0,yes,0</code></pre>
+              <p>
+                Add outcome columns: accepted change, failed handoff, minutes
+                spent reviewing, and whether the task was rolled back. After a
+                week, compare commander delta per accepted result. If native
+                exploration routinely returns pages the commander re-reads,
+                require a tighter report. If external workers need extensive
+                repair, move that task family back to Claude or strengthen the
+                acceptance command. A lower usage number paired with bad diffs
+                is not efficiency.
+              </p>
+              <h3>Attribute usage to task phases, not personalities</h3>
+              <p>
+                A single before-and-after number tells you whether the whole
+                task was expensive, but not why. Split substantial work into
+                framing, exploration, implementation, review, and recovery.
+                Record a usage observation at each boundary when the interface
+                makes that practical. The goal is not precise accounting down
+                to a token. It is to identify the phase that repeatedly expands
+                and to change the routing rule for the next comparable task.
+              </p>
+              <p>
+                For example, an implementation may be cheap while review costs
+                dominate because the worker returns a broad, undocumented diff.
+                Moving more implementation away from the commander would make
+                the wrong phase cheaper. The improvement is a narrower write
+                set, a diff summary tied to acceptance criteria, and a focused
+                verification command. Conversely, if framing consumes several
+                turns because the task is ambiguous, delegation should wait;
+                every worker would otherwise receive a different guess.
+              </p>
+              <p>
+                Count discarded runs. A worker attempt that produces no
+                acceptable artifact still consumed task-writing, launch,
+                monitoring, and review attention. Record it as a failed handoff,
+                not as zero commander cost. Also count context reloads: starting
+                a fresh worker for a tightly coupled second phase may require it
+                to reread the same architecture and files. Keeping the work in
+                the commander's current context can be cheaper even when the
+                commander's model is nominally more expensive.
+              </p>
+              <p>
+                After several similar tasks, turn the observations into a
+                routing table. “Use a read-only native subagent for repository
+                maps over ten files” is actionable. “Delegate more” is not.
+                Revisit the table when model behavior, plan limits, repository
+                size, or worker tooling changes. These strategies are operating
+                hypotheses, not permanent facts about every Claude Code plan.
+              </p>
+            </section>
+
+            <section id="weekly-loop">
+              <h2>Run a weekly allocation loop</h2>
+              <ol>
+                <li>Check <span class="inline-code">/usage</span> before committing to a large task.</li>
+                <li>Reserve commander capacity for integration, review, and urgent defects late in the period.</li>
+                <li>Delegate only independent tasks with objective acceptance evidence.</li>
+                <li>Cap every worker at one initial attempt and one materially changed retry.</li>
+                <li>Review the real diff and run the focused command locally before acceptance.</li>
+                <li>At week's end, remove any delegation pattern whose rework exceeds its saved usage.</li>
+              </ol>
+              <p>
+                When Claude Code reports that the weekly limit is reached, it
+                blocks further requests until the displayed reset time unless
+                eligible extra usage is enabled. No shell wrapper can bypass an
+                account limit. Good orchestration changes which tasks consume
+                the allocation before that point; it does not alter the plan's
+                quota or guarantee a particular number of hours.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://code.claude.com/docs/en/errors">
+                    Claude Code Docs: usage-limit errors and reset behavior
+                  </a>
+                </li>
+                <li>
+                  <a href="https://code.claude.com/docs/en/costs">
+                    Claude Code Docs: track usage and manage costs
+                  </a>
+                </li>
+                <li>
+                  <a href="https://code.claude.com/docs/en/sub-agents">
+                    Claude Code Docs: native subagents and isolated context
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" id="resources" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resources</p>
+            <h2 id="resources-title">Build a commander/worker system you can audit</h2>
+            <p>
+              Read the free orchestration repository, then use the full guide
+              when you need task packets, worker lifecycle patterns, and
+              evidence-driven review in one operating system.
+            </p>
+            <p>
+              <a href="https://github.com/soul-sol/claude-code-orchestration-ko">
+                Free Claude Code orchestration repository
+              </a>
+            </p>
+          </div>
+          <a
+            class="action action-primary"
+            href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration"
+          >
+            View the orchestration book
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
