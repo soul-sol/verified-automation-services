@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static spreadsheet inspection guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Check an unopened Excel workbook for VBA projects and external links with a read-only OOXML inspection workflow, CI examples, and clear limits."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Check an Excel file for macros and external links before opening">
+    <meta
+      property="og:description"
+      content="A read-only way to inspect OOXML workbook structure before opening a spreadsheet in Excel."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/check-excel-file-for-macros-external-links.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/check-excel-file-for-macros-external-links.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Check an Excel file for macros and external links before opening</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Check an Excel file for macros and external links before opening",
+        "description": "Check an unopened Excel workbook for VBA projects and external links with a read-only OOXML inspection workflow, CI examples, and clear limits.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/check-excel-file-for-macros-external-links.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#inspect">Inspect</a>
+          <a class="nav-link" href="#ci">CI</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="https://xlsx.lifestep.io"
+          >
+            Inspect a workbook
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Spreadsheet preflight guide</p>
+            <h1>Check an Excel file for macros and external links before opening</h1>
+            <p class="article-dek">
+              An .xlsx file can be inspected as a package first. List its OOXML
+              parts, identify macro and relationship signals, and make a
+              documented decision before a desktop spreadsheet app opens it.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>10 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#inspect">Inspect OOXML safely</a></li>
+              <li><a href="#workflow">Use the evidence</a></li>
+              <li><a href="#ci">Automate the gate</a></li>
+              <li><a href="#faq">Common questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Before opening a workbook from an email, download, vendor, or
+                shared drive, inspect its ZIP package rather than double-clicking it.
+                Modern Excel formats are Office Open XML (OOXML) packages. A
+                simple listing can reveal a VBA project, external-link parts,
+                embedded objects, connections, and the relationships that join
+                them—without starting Excel or enabling anything.
+              </p>
+              <p>
+                This is a structural preflight, not malware analysis. A clean
+                package listing does not prove a file is safe, and the presence
+                of a macro or link does not prove it is malicious. It gives you
+                evidence for the next decision: reject, isolate, request a
+                clean export, or examine the file under the right controls.
+              </p>
+            </section>
+
+            <section id="inspect">
+              <h2>Why an unopened .xlsx deserves inspection</h2>
+              <p>
+                The extension is useful but incomplete. A normal macro-free
+                workbook is usually named <span class="inline-code">.xlsx</span>;
+                an Excel macro-enabled workbook is normally
+                <span class="inline-code">.xlsm</span>. Yet a filename is not a
+                trust decision. Files are renamed, archives can be constructed
+                outside Excel, and a package can contain parts that deserve
+                review even when its extension looks routine.
+              </p>
+              <p>
+                A workbook can carry a VBA project in a binary part commonly
+                named <span class="inline-code">xl/vbaProject.bin</span>. Excel
+                may use it to store VBA code, forms, and related project data.
+                Workbooks can also contain external-link definitions. Those
+                definitions tell Excel that formulas or named items refer to
+                another workbook or a remote target. When opened, a spreadsheet
+                program may prompt to update links or resolve a connection,
+                depending on the file and application settings.
+              </p>
+              <p>
+                Neither finding proves intent. Finance teams often use approved
+                linked workbooks; legacy models may require signed macros. The
+                useful policy is simpler: unexpected executable or external
+                behavior is an exception that needs an owner and a reason.
+              </p>
+
+              <h3>OOXML is a ZIP container</h3>
+              <p>
+                An OOXML workbook is a ZIP archive containing XML documents,
+                relationship files, and sometimes binary payloads. Listing its
+                entries reads the directory of the archive; it does not launch
+                Excel, calculate formulas, refresh links, or run VBA. Copy the
+                file to a controlled working directory and use a ZIP lister:
+              </p>
+              <pre class="article-code"><code>unzip -l suspicious-workbook.xlsx
+
+# On systems with bsdtar:
+bsdtar -tf suspicious-workbook.xlsx</code></pre>
+              <p>
+                Avoid extracting into a shared directory until you need to
+                examine a specific text part. Listing first keeps the action
+                narrow and creates an easily saved record. Do not use Excel's
+                preview pane as an inspection technique; the point is to avoid
+                invoking a spreadsheet application until the package evidence
+                has been reviewed.
+              </p>
+
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Useful workbook parts and what they can indicate</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Package entry</th>
+                      <th scope="col">Meaning</th>
+                      <th scope="col">Read-only response</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="inline-code">xl/vbaProject.bin</span></td>
+                      <td>VBA project payload is present</td>
+                      <td>Route for macro policy review; do not enable by default</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">xl/externalLinks/</span></td>
+                      <td>External workbook-link definitions are present</td>
+                      <td>Review targets and ask why the dependency exists</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">xl/connections.xml</span></td>
+                      <td>Workbook connection definitions may be present</td>
+                      <td>Record it and use the organization’s connection policy</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">xl/embeddings/</span></td>
+                      <td>Embedded package or object content</td>
+                      <td>Escalate if it is unexpected; inspect separately</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">_rels/.rels</span> or <span class="inline-code">xl/_rels/</span></td>
+                      <td>Relationships point one part to another or outside the package</td>
+                      <td>Review external relationship targets as context, not a verdict</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3>Search for the structural signals</h3>
+              <p>
+                The listing becomes practical when it is filtered for the paths
+                that change your handling decision. The following shell snippet
+                makes no modification to the source workbook. It records the
+                ZIP listing, then returns matching part names.
+              </p>
+              <pre class="article-code"><code>unzip -l suspicious-workbook.xlsx | tee workbook-contents.txt
+unzip -l suspicious-workbook.xlsx | \
+  rg 'xl/vbaProject\.bin|xl/externalLinks/|xl/connections\.xml|xl/embeddings/|\.rels$'</code></pre>
+              <p>
+                If your environment does not have <span class="inline-code">rg</span>,
+                replace it with <span class="inline-code">grep -E</span>. Treat a
+                no-match result as “these named paths were not found,” not as a
+                comprehensive safety finding. Structure can vary across producers,
+                and a ZIP listing says nothing about the intent or exploitability
+                of content inside a part.
+              </p>
+            </section>
+
+            <section id="workflow">
+              <h2>A safe read-only inspection workflow</h2>
+              <ol>
+                <li>
+                  <strong>Preserve the original.</strong> Save the received file
+                  without opening it. Record its source, filename, size, and a
+                  SHA-256 hash so later reviewers know exactly what was checked.
+                </li>
+                <li>
+                  <strong>Confirm it is a ZIP-based workbook.</strong> Run
+                  <span class="inline-code">file workbook.xlsx</span> and
+                  <span class="inline-code">unzip -t workbook.xlsx</span>.
+                  The test checks archive integrity; it does not certify safety.
+                </li>
+                <li>
+                  <strong>List, then classify.</strong> Search for the macro,
+                  external-link, connection, embedding, and relationship paths
+                  above. Keep the command output with the ticket or intake record.
+                </li>
+                <li>
+                  <strong>Read a small XML part only when needed.</strong> Extract
+                  a selected relationship or external-link XML file to standard
+                  output, for example
+                  <span class="inline-code">unzip -p workbook.xlsx xl/_rels/workbook.xml.rels</span>.
+                  This exposes relationship metadata without launching Excel.
+                </li>
+                <li>
+                  <strong>Make a policy decision.</strong> Expected, approved
+                  links can proceed under normal controls. Unexpected macros,
+                  connections, or embedded objects should go to the sender,
+                  security process, or isolated analysis environment—not a user
+                  who is being asked to click Enable Content.
+                </li>
+              </ol>
+              <p>
+                Hashing is especially helpful when a sender replaces a file.
+                Two files with the same displayed name are not necessarily the
+                same evidence. On macOS and Linux, use
+                <span class="inline-code">shasum -a 256 workbook.xlsx</span>;
+                on Windows PowerShell, use
+                <span class="inline-code">Get-FileHash workbook.xlsx -Algorithm SHA256</span>.
+              </p>
+
+              <aside class="article-callout" aria-labelledby="resource-title">
+                <h3 id="resource-title">Read-only workbook inspection resources</h3>
+                <p>
+                  Use the browser inspector at
+                  <a href="https://xlsx.lifestep.io">xlsx.lifestep.io</a> for a
+                  guided structural check, or integrate the inspection API at
+                  <a href="https://api.lifestep.io/inspect">api.lifestep.io/inspect</a>.
+                  Review each service’s current data-handling terms before
+                  submitting confidential workbooks.
+                </p>
+              </aside>
+            </section>
+
+            <section id="ci">
+              <h2>Automate the structural gate in CI</h2>
+              <p>
+                CI is a good fit when a repository accepts spreadsheets as
+                deliverables, fixtures, templates, or vendor uploads. The job
+                should not claim to scan for malware. Its narrow purpose is to
+                prevent an unreviewed workbook structure from silently entering
+                a release or approval flow. Store the report as a build artifact
+                and fail only on the policy signals your team has agreed to.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -euo pipefail
+
+workbook="$1"
+report="workbook-structure.txt"
+
+unzip -t "$workbook" &gt; /dev/null
+unzip -l "$workbook" | tee "$report"
+
+if unzip -l "$workbook" | rg -q 'xl/vbaProject\.bin'; then
+  echo "Macro project detected: review required" >&amp;2
+  exit 20
+fi
+
+if unzip -l "$workbook" | rg -q 'xl/externalLinks/|xl/connections\.xml'; then
+  echo "External dependency signal detected: review required" >&amp;2
+  exit 21
+fi</code></pre>
+              <p>
+                A nonzero status here means “requires review,” not “malicious.”
+                That distinction prevents a noisy security control from becoming
+                untrusted. If macro-enabled files are allowed in one directory,
+                scope the exception to that directory, require a reviewer, and
+                preserve the resulting report. Do not weaken the gate globally
+                because one legacy workbook is expected.
+              </p>
+              <h3>Call an inspection API from a pipeline</h3>
+              <p>
+                A service can centralize the report format, but it does not
+                remove the need to protect confidential files. Start with a
+                non-production sample, configure authentication through your
+                CI secret store when required, and save only the resulting
+                structural report. A minimal request shape is:
+              </p>
+              <pre class="article-code"><code>curl --fail --show-error --silent \
+  --form "file=@workbook.xlsx" \
+  https://api.lifestep.io/inspect</code></pre>
+              <p>
+                Check the API documentation and retention terms before sending
+                sensitive payroll, customer, health, or financial data to any
+                external service. For high-sensitivity files, prefer a local
+                tool or an approved internal environment. Automation should
+                create a reviewable decision trail, not move sensitive data to
+                an unknown place merely to make a check convenient.
+              </p>
+            </section>
+
+            <section id="faq">
+              <h2>Common questions</h2>
+
+              <h3>Can an .xlsx really contain macros?</h3>
+              <p>
+                Standard Excel naming conventions reserve macro-enabled content
+                for .xlsm, but the extension alone is not a reliable control.
+                Inspect the actual package and enforce an organizational policy
+                based on the evidence, source, and expected business purpose.
+              </p>
+
+              <h3>Do external links mean the workbook is unsafe?</h3>
+              <p>
+                No. They mean the workbook has an external dependency signal.
+                A linked planning model may be legitimate; a link in a document
+                from an unknown sender may be a reason to stop. Context decides
+                the response.
+              </p>
+
+              <h3>Does unzip -l execute the spreadsheet?</h3>
+              <p>
+                No. It lists ZIP entries. It does not open the workbook in
+                Excel, calculate formulas, refresh data, or run VBA. Still use
+                normal endpoint protections because structural inspection is
+                only one layer of a file-handling process.
+              </p>
+
+              <h3>Is this malware analysis?</h3>
+              <p>
+                No. This guide identifies package structure only. It does not
+                deobfuscate VBA, emulate execution, classify a payload, find
+                every exploit, or determine whether a workbook is benign. Use
+                approved security tooling and incident procedures for that work.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Further reading</h2>
+              <ul>
+                <li>
+                  <a href="https://learn.microsoft.com/en-us/office/open-xml/structure-of-a-spreadsheetml-document">
+                    Microsoft Learn: Structure of a SpreadsheetML document
+                  </a>
+                </li>
+                <li>
+                  <a href="https://learn.microsoft.com/en-us/office/open-xml/working-with-external-links">
+                    Microsoft Learn: Working with external links
+                  </a>
+                </li>
+                <li>
+                  <a href="https://support.microsoft.com/en-us/office/enable-or-disable-macros-in-microsoft-365-files-12b036fd-d140-4e74-b45e-16fed1d0c9e0">
+                    Microsoft Support: Enable or disable macros in Microsoft 365 files
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">From file intake to evidence</p>
+            <h2>Inspect workbook structure before opening it</h2>
+            <p>
+              Use a browser-based structural check or integrate the inspection
+              endpoint into an existing intake workflow.
+            </p>
+          </div>
+          <a class="action action-primary" href="https://xlsx.lifestep.io">
+            Open the workbook inspector
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static API guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Use a free QR code API with no signup: working curl, JavaScript, and Python examples for PNG or SVG output, colors, scale, and borders.">
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Free QR code API with no signup: PNG and SVG examples">
+    <meta property="og:description" content="Generate QR codes without an account or API key using practical curl, JavaScript, and Python examples.">
+    <meta property="og:url" content="https://soul-sol.github.io/verified-automation-services/free-qr-code-api-no-signup.html">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://soul-sol.github.io/verified-automation-services/free-qr-code-api-no-signup.html">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Free QR code API with no signup: PNG and SVG examples</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Free QR code API with no signup: PNG and SVG examples",
+        "description": "Use a free QR code API with no signup: working curl, JavaScript, and Python examples for PNG or SVG output, colors, scale, and borders.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/free-qr-code-api-no-signup.html",
+        "author": {"@type": "Organization", "name": "Verified Automation Services", "url": "https://soul-sol.github.io/verified-automation-services/"},
+        "publisher": {"@type": "Organization", "name": "Verified Automation Services", "url": "https://soul-sol.github.io/verified-automation-services/"}
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#choose">API or library?</a>
+          <a class="nav-link" href="#parameters">Parameters</a>
+          <a class="nav-link" href="#examples">Examples</a>
+          <a class="nav-link nav-link-primary action action-primary" href="https://qr.lifestep.io">Try the free QR API</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">No-key developer utility</p>
+            <h1>Free QR code API with no signup: PNG and SVG examples</h1>
+            <p class="article-dek">Send text or a URL to one HTTPS endpoint and receive a QR code image. No account, API key, or SDK is required for the examples in this guide.</p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>10 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#choose">When to use an API or library</a></li>
+              <li><a href="#parameters">URL parameters</a></li>
+              <li><a href="#examples">curl, JavaScript, and Python</a></li>
+              <li><a href="#formats">SVG or PNG</a></li>
+              <li><a href="#reliability">Scanning and sizing pitfalls</a></li>
+              <li><a href="#privacy">When not to use a hosted API</a></li>
+              <li><a href="#faq">Common questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>Open <a href="https://qr.lifestep.io/qr?data=Hello%20world"><span class="inline-code">https://qr.lifestep.io/qr?data=Hello%20world</span></a> to generate a PNG QR code immediately. The service is free to use without signup: there is no API key to request and no authorization header to add. Add <span class="inline-code">format=svg</span> for vector output, or control module size, quiet-zone width, and colors with the parameters below.</p>
+              <p>This convenience has a boundary. A hosted service fits public, non-sensitive values and occasional generation. Use a local QR library for secrets, personal information, offline work, large batches, or any system that cannot tolerate a third-party network dependency.</p>
+            </section>
+
+            <section id="choose">
+              <h2>When do you need a QR API instead of a library?</h2>
+              <p>A QR API is the shortest route when the caller can make an HTTPS request but you do not want to install, bundle, or maintain an encoder. It works well for a static site, one-off automation, spreadsheet formula, no-code HTTP step, or small serverless function. The response is already an image, so a browser can display it and a script can save it without understanding the QR specification.</p>
+              <p>A library is better once generation becomes core application behavior. Local code removes network latency, keeps input on the device, works offline, and lets you pin the encoder version. It also avoids depending on the availability or future terms of a free endpoint. For bulk labels, generate locally or generate once and cache the files; do not make a new hosted request on every page view.</p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Choose the smallest dependable generation method</caption>
+                  <thead><tr><th scope="col">Situation</th><th scope="col">Better choice</th><th scope="col">Reason</th></tr></thead>
+                  <tbody>
+                    <tr><td>Public URL in a prototype</td><td>Hosted API</td><td>No dependency or account setup</td></tr>
+                    <tr><td>Static page needs one image</td><td>API, then cache it</td><td>Simple build-time generation</td></tr>
+                    <tr><td>Thousands of labels</td><td>Local library</td><td>Lower latency and fewer network failures</td></tr>
+                    <tr><td>Offline or sensitive workflow</td><td>Local library</td><td>Input never becomes a hosted request</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="parameters">
+              <h2>Free QR code API URL parameters</h2>
+              <p>The endpoint accepts GET query parameters at <span class="inline-code">/qr</span>. Always URL-encode <span class="inline-code">data</span>; otherwise an ampersand, question mark, space, or non-ASCII character can be interpreted as request syntax instead of content. GET parameters and a JSON POST body are supported. GET is convenient for an image URL, while POST is useful when application code already sends JSON.</p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Supported parameters and validated ranges</caption>
+                  <thead><tr><th scope="col">Parameter</th><th scope="col">Default</th><th scope="col">Accepted value</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="inline-code">data</span></td><td>Required</td><td>1–2000 characters of text or a URL</td></tr>
+                    <tr><td><span class="inline-code">format</span></td><td><span class="inline-code">png</span></td><td><span class="inline-code">png</span> or <span class="inline-code">svg</span></td></tr>
+                    <tr><td><span class="inline-code">scale</span></td><td><span class="inline-code">6</span></td><td>Integer from 1 through 20</td></tr>
+                    <tr><td><span class="inline-code">border</span></td><td><span class="inline-code">4</span></td><td>Integer from 0 through 16 modules</td></tr>
+                    <tr><td><span class="inline-code">dark</span></td><td><span class="inline-code">000000</span></td><td>Six-digit RGB hex without <span class="inline-code">#</span></td></tr>
+                    <tr><td><span class="inline-code">light</span></td><td><span class="inline-code">ffffff</span></td><td>Six-digit RGB hex without <span class="inline-code">#</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>A navy-on-pale-blue SVG can use <span class="inline-code">dark=172554</span> and <span class="inline-code">light=eff6ff</span>. The API validates color syntax, not scan reliability. Keep the foreground much darker than the background and test the final printed or displayed result on several devices.</p>
+              <p>Invalid or missing parameters return a structured HTTP 422 response rather than an image. That includes an empty <span class="inline-code">data</span> value, an unsupported format such as JPEG, a scale or border outside the documented range, and colors containing a hash mark or shorthand hex. Content can also be within the 2000-character request limit yet too large to encode. Check the status and <span class="inline-code">Content-Type</span> before saving a response, especially in scheduled jobs where an error document could otherwise be published with a <span class="inline-code">.png</span> filename.</p>
+            </section>
+
+            <section id="examples">
+              <h2>Working curl, JavaScript, and Python examples</h2>
+              <h3>curl: save a PNG safely</h3>
+              <pre class="article-code"><code>curl --fail --show-error --location --get \
+  'https://qr.lifestep.io/qr' \
+  --data-urlencode 'data=https://example.com/check-in?guest=42' \
+  --data 'format=png' \
+  --data 'scale=8' \
+  --data 'border=4' \
+  --output check-in.png</code></pre>
+              <p><span class="inline-code">--data-urlencode</span> protects the embedded URL, while <span class="inline-code">--fail</span> stops an HTTP error body from being mistaken for a PNG. Add <span class="inline-code">--data 'dark=172554'</span> and <span class="inline-code">--data 'light=eff6ff'</span> for colors. Change both the format and filename when requesting SVG.</p>
+
+              <h3>JavaScript fetch: display the image</h3>
+              <pre class="article-code"><code>const params = new URLSearchParams({
+  data: "https://example.com/check-in?guest=42",
+  format: "png",
+  scale: "8",
+  border: "4",
+  dark: "172554",
+  light: "eff6ff",
+});
+
+const response = await fetch(`https://qr.lifestep.io/qr?${params}`);
+if (!response.ok) {
+  throw new Error(`QR API failed with HTTP ${response.status}`);
+}
+
+const imageUrl = URL.createObjectURL(await response.blob());
+const image = document.querySelector("#qr-code");
+image.addEventListener("load", () => URL.revokeObjectURL(imageUrl), { once: true });
+image.src = imageUrl;</code></pre>
+              <p><span class="inline-code">URLSearchParams</span> avoids hand-built query-string bugs. The object URL is revoked after the browser loads it. For a fixed destination, an <span class="inline-code">&lt;img&gt;</span> can point directly at the encoded API URL, but downloading and serving a cached copy removes the runtime dependency.</p>
+
+              <h3>Python: download an SVG without extra packages</h3>
+              <pre class="article-code"><code>from pathlib import Path
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+params = urlencode({
+    "data": "https://example.com/check-in?guest=42",
+    "format": "svg", "scale": 6, "border": 4,
+    "dark": "172554", "light": "eff6ff",
+})
+request = Request(
+    f"https://qr.lifestep.io/qr?{params}",
+    headers={"Accept": "image/svg+xml"},
+)
+
+with urlopen(request, timeout=10) as response:
+    if response.headers.get_content_type() != "image/svg+xml":
+        raise RuntimeError("Unexpected QR API response type")
+    Path("check-in.svg").write_bytes(response.read())</code></pre>
+              <p>This standard-library example applies a timeout and checks the response type before writing. Production code should also catch network and HTTP errors, limit retries, and avoid replacing a valid file when a request fails.</p>
+            </section>
+
+            <section id="formats">
+              <h2>SVG vs PNG: which format should you request?</h2>
+              <p>Choose SVG when the QR code may be resized, placed in a PDF, or printed. Vector geometry stays sharp at different physical sizes. Serve it as <span class="inline-code">image/svg+xml</span>, and treat SVG received from any external service under your normal content-security rules.</p>
+              <p>Choose PNG for the broadest, simplest image handling. Email clients, social tools, document editors, and image pipelines usually accept it without special handling. PNG is raster output, so generate it near the size you need and avoid resizing that places module edges between pixels. The right source scale produces cleaner edges than later interpolation.</p>
+            </section>
+
+            <section id="reliability">
+              <h2>Error correction, sizing, and quiet-zone pitfalls</h2>
+              <p>QR codes define four error-correction levels: L, M, Q, and H. Higher levels add redundancy so more damaged modules can be recovered, at the cost of a denser or larger symbol. This API generates standard QR codes at level M and does not expose an error-correction parameter. M is a sound general default, but it is not permission to cover the center with a logo. Damage location, density, glare, print quality, and the scanner all affect the result.</p>
+              <p><span class="inline-code">scale</span> is pixels per module, not a fixed image width. A longer value needs more modules, so two requests with the same scale can have different pixel dimensions. Keep destinations short, generate at the intended size, and test at the real viewing distance. Long tracking URLs produce denser patterns that are less forgiving when printed small.</p>
+              <p>The quiet zone is the empty border around the symbol. The default border is four modules and is the safe ordinary choice. Although zero is accepted, removing the quiet zone can make nearby text, a card edge, or a dark page look like part of the code. Do not crop the border after download. If the design uses a colored background, set <span class="inline-code">light</span> so the quiet zone is rendered consistently with strong contrast.</p>
+              <aside class="article-callout" aria-labelledby="scan-check-title">
+                <h3 id="scan-check-title">A five-minute scan check</h3>
+                <ol>
+                  <li>Open the saved PNG or SVG, not a preview placeholder.</li>
+                  <li>Scan it with at least two different phones.</li>
+                  <li>Test the final physical size or responsive layout.</li>
+                  <li>Try normal light, dim light, and an angled camera.</li>
+                  <li>Confirm the decoded destination before distribution.</li>
+                </ol>
+              </aside>
+            </section>
+
+            <section id="privacy">
+              <h2>When not to use a hosted QR code API</h2>
+              <p>Do not send passwords, access tokens, private Wi-Fi credentials, medical or customer data, internal document links, or other PII to a public QR endpoint. GET parameters may appear in browser history, access logs, reverse-proxy logs, monitoring systems, and referrer data. A stateless application does not prove every surrounding network layer stores nothing. Generate sensitive QR codes locally.</p>
+              <p>A hosted API is also the wrong dependency for an offline app, emergency workflow, factory line, or paid feature with a strict uptime requirement unless you add caching and a fallback. Free and no-signup do not mean unlimited, permanent, or covered by a service-level agreement. Save stable outputs under your control and consult the machine-readable <a href="https://qr.lifestep.io/openapi.json">OpenAPI document</a> before relying on the interface.</p>
+            </section>
+
+            <section id="faq">
+              <h2>Common questions</h2>
+              <h3>Is this QR code API really free with no signup?</h3>
+              <p>Yes. The public endpoint used here requires no account, API key, or authorization header. That describes the current interface, not unlimited capacity or permanent availability. Handle non-200 responses and cache outputs that matter.</p>
+              <h3>Can it encode a URL with its own query string?</h3>
+              <p>Yes, when the whole value is URL-encoded as <span class="inline-code">data</span>. Use <span class="inline-code">--data-urlencode</span>, <span class="inline-code">URLSearchParams</span>, or <span class="inline-code">urllib.parse.urlencode</span> rather than joining strings manually.</p>
+              <h3>Does the 2000-character limit mean every value fits?</h3>
+              <p>No. It is an input ceiling, not a guarantee that every Unicode value fits a QR symbol. Capacity depends on encoded bytes and error correction. Unencodable content returns HTTP 422, so verify the status before treating the body as an image.</p>
+              <h3>Can I use brand colors?</h3>
+              <p>Yes, with six-digit <span class="inline-code">dark</span> and <span class="inline-code">light</span> RGB values without the hash mark. Strong contrast matters more than brand fidelity. Avoid pale foregrounds, busy backgrounds, and inverted designs unless device testing proves them reliable.</p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Documentation and resources</h2>
+              <ul>
+                <li><a href="https://qr.lifestep.io/openapi.json">QR Code API: OpenAPI schema</a></li>
+                <li><a href="https://www.qrcode.com/en/about/error_correction.html">DENSO WAVE: QR Code error correction</a></li>
+                <li><a href="https://segno.readthedocs.io/en/latest/">Segno QR Code generator documentation</a></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" id="resource-box">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Free developer resources</p>
+            <h2>Generate a QR code or browse more no-key APIs</h2>
+            <p>Use the QR service for free without signup, and visit the API catalog for additional small developer utilities. Review each API's documentation and data boundary before production use.</p>
+          </div>
+          <div class="hero-actions">
+            <a class="action action-primary" href="https://qr.lifestep.io">Open the QR Code API</a>
+            <a class="action action-primary" href="https://api.lifestep.io">Browse the API catalog</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
