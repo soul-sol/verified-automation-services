@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static troubleshooting guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Fix Claude Code when it looks stuck, hangs, or stops responding: identify approval waits, long tools, context pressure, rate limits, and true process failure.">
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Claude Code stuck, hanging, or not responding: how to tell and fix it">
+    <meta property="og:description" content="A practical way to separate a live agent from an approval wait, a long tool call, a rate limit, or a dead process.">
+    <meta property="og:url" content="https://soul-sol.github.io/verified-automation-services/claude-code-stuck-not-responding-fix.html">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://soul-sol.github.io/verified-automation-services/claude-code-stuck-not-responding-fix.html">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Claude Code stuck, hanging, or not responding: how to tell and fix it</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Claude Code stuck, hanging, or not responding: how to tell and fix it",
+        "description": "Fix Claude Code when it looks stuck, hangs, or stops responding: identify approval waits, long tools, context pressure, rate limits, and true process failure.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/claude-code-stuck-not-responding-fix.html",
+        "author": {"@type": "Organization", "name": "Verified Automation Services", "url": "https://soul-sol.github.io/verified-automation-services/"},
+        "publisher": {"@type": "Organization", "name": "Verified Automation Services", "url": "https://soul-sol.github.io/verified-automation-services/"}
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#diagnose">Diagnose</a>
+          <a class="nav-link" href="#fixes">Fixes</a>
+          <a class="nav-link nav-link-primary action action-primary" href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration">Orchestration guide</a>
+        </div>
+      </nav>
+    </header>
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Claude Code troubleshooting guide</p>
+            <h1>Claude Code stuck, hanging, or not responding: how to tell and fix it</h1>
+            <p class="article-dek">A silent terminal is not proof that an agent has failed. First separate a waiting approval, an active tool, context pressure, a limit, and an exited process—then take the smallest safe recovery action.</p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>10 minute read</span>
+            </div>
+          </div>
+        </header>
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#diagnose">Diagnose the state</a></li>
+              <li><a href="#fixes">Restore progress safely</a></li>
+              <li><a href="#watcher">Use a watcher</a></li>
+              <li><a href="#restart">Restart at the right time</a></li>
+            </ol>
+          </nav>
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>When Claude Code appears stuck, do not immediately kill it or repeat the same prompt. It may be waiting for your permission, running a command that genuinely takes time, compacting a crowded context, or waiting for a usage-limit reset. A process is much more likely to be dead when it has exited, its terminal job is gone, or a watcher has observed no log or state change past a timeout you chose for that task.</p>
+              <p>Start by looking for an approval prompt and checking the process. For unattended work, define the safe autonomy boundary before starting, record a completion marker and exit code, and watch a log rather than guessing from a quiet terminal.</p>
+            </section>
+            <section id="diagnose">
+              <h2>Why an agent can look stuck when it is not</h2>
+              <h3>It is waiting for approval</h3>
+              <p>Claude Code normally asks before actions such as shell commands, writes, or network access, depending on the active permission mode and rules. The agent cannot make the next move until someone answers that prompt. This is an intentional safety pause, not a model hang. Scroll to the latest terminal output and look for a permission request, then use <span class="inline-code">/permissions</span> to inspect the applicable allow, ask, and deny rules.</p>
+              <p>Do not solve prompt fatigue by broadly bypassing protections in a valuable working tree. Instead, pre-approve a narrow, understood set of commands and paths, or use an isolated disposable environment for a task that truly needs wider autonomy. A denial is useful evidence: it tells you that the run’s declared boundary and requested action disagree.</p>
+              <h3>A tool call is still running</h3>
+              <p>Tests, builds, package installs, network requests, database migrations, and searches can be quiet for a long time. The model may be waiting on the tool rather than “thinking.” Open another terminal and inspect the child process, its CPU time, and recent output. On macOS or Linux, replace the PID below with the process ID shown by your shell or watcher:</p>
+              <pre class="article-code"><code>ps -p PID -o pid=,ppid=,stat=,etime=,time=,command=
+pgrep -af 'claude|node|npm|pytest|go test'
+
+# Follow a known log without interrupting the job
+tail -n 40 -f .agent-runs/feature-a.log</code></pre>
+              <p>A process in a running state with increasing CPU time or a log that is still changing is working, even if the Claude interface has no prose response yet. Conversely, a network tool can be alive but blocked on a remote service. Give every external operation a timeout; otherwise an unavailable host can look exactly like a stalled agent.</p>
+              <h3>Context has become too large or noisy</h3>
+              <p>Claude Code’s context contains conversation history, file contents, command output, instructions, loaded skills, and other session material. Large logs and repeated full-file reads consume space and attention. Automatic compaction can summarize history, but it is not a substitute for a clean task boundary. Use <span class="inline-code">/context</span> to see where the window is going. Use <span class="inline-code">/compact</span> with a concrete focus when the current task must continue, or <span class="inline-code">/clear</span> when switching to unrelated work.</p>
+              <p>Before clearing, write a short handoff in the repository or issue: objective, files changed, command results, unresolved error, and next command. That preserves the facts a new session needs without forcing it to reconstruct them from a huge transcript. Do not keep appending “try again” messages; they add context without adding evidence.</p>
+              <h3>A rate or usage limit has paused requests</h3>
+              <p>A plan or account limit is different from a frozen local process. Claude Code reports a reset time when a session, weekly, or model-specific allowance is exhausted. Run <span class="inline-code">/usage</span> and read the displayed message. Waiting until the stated reset, changing to an allowed model if your account supports it, or purchasing/administering extra usage are account decisions—not fixes that a shell restart can provide.</p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Classify the quiet terminal before intervening</caption>
+                  <thead><tr><th scope="col">Evidence</th><th scope="col">State</th><th scope="col">Best next action</th></tr></thead>
+                  <tbody>
+                    <tr><td>Visible permission question</td><td>Awaiting approval</td><td>Approve only the understood action or adjust a narrow rule</td></tr>
+                    <tr><td>PID exists; log or CPU time changes</td><td>Working</td><td>Wait to the task timeout and continue watching</td></tr>
+                    <tr><td>Usage message includes a reset time</td><td>Rate or plan limited</td><td>Wait or make an account-level choice</td></tr>
+                    <tr><td>Exit code or terminal job is present</td><td>Finished or failed</td><td>Read the final output; do not call it a hang</td></tr>
+                    <tr><td>PID is gone; no DONE or FAILED marker</td><td>Unobserved interruption</td><td>Inspect the log, then resume from a small verified checkpoint</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            <section id="fixes">
+              <h2>Make the next run autonomous in the right places</h2>
+              <p>The useful fix is an autonomy clause: a short instruction that names the outcome, the safe operating boundary, evidence to leave behind, and the stop conditions. It gives an agent room to finish routine work while retaining human control over irreversible actions. It is not a request to ignore safety or to silently deploy.</p>
+              <pre class="article-code"><code>Goal: implement and verify the parser change.
+
+You may read and edit files under src/ and tests/; run the named test suite;
+and create files under .agent-runs/. Do not push, deploy, alter credentials,
+change dependencies, or touch files outside those paths. If blocked, stop and
+write the blocker plus the next safe command to .agent-runs/feature-a.status.
+Finish by writing DONE with the exact test command and exit code.</code></pre>
+              <p>Keep the clause specific to the job. “Work autonomously” without boundaries forces either repeated approval prompts or unsafe assumptions. Define the writable paths, allowed commands, maximum elapsed time, prohibited side effects, and the evidence that counts as complete. If a command could delete data, publish code, access secrets, or create a bill, leave it out of the clause and require an explicit decision.</p>
+              <h3>Set timeouts at the tool boundary</h3>
+              <p>Use the operating system to put an upper bound on commands that can wait forever. GNU/Linux has <span class="inline-code">timeout</span>; macOS has no built-in command with the same interface, so use a CI timeout, a process supervisor, or a small watcher. A timeout should create a diagnostic result, not pretend the work succeeded.</p>
+              <pre class="article-code"><code># GNU/Linux: return a nonzero status if the command exceeds 20 minutes
+timeout --signal=TERM 20m npm test
+status=$?
+printf 'exit=%s\n' "$status"
+
+# In a POSIX shell, preserve a pipeline's test status deliberately
+set -o pipefail
+npm test 2>&amp;1 | tee .agent-runs/test.log</code></pre>
+              <p>When a timeout fires, save the tail of the log, the process tree, and the last completed checkpoint. Then decide whether the bottleneck is a test deadlock, a slow dependency download, a remote outage, or a badly scoped task. Restarting without that distinction repeats the same uncertainty.</p>
+            </section>
+            <section id="watcher">
+              <h2>Run long work in the background with a watcher</h2>
+              <p>A background process needs an observable contract. Capture its PID, stream its output to a per-run log, and write a terminal marker containing the actual exit code. The marker is stronger evidence than a terminal that happens to be quiet. This simple shell pattern works for any command you are authorized to run; substitute your own Claude Code invocation and prompt mechanism.</p>
+              <pre class="article-code"><code>mkdir -p .agent-runs
+run_id="feature-a-$(date +%Y%m%d-%H%M%S)"
+log=".agent-runs/$run_id.log"
+status=".agent-runs/$run_id.status"
+
+(
+  claude --print 'Implement the scoped task and report verification.' &gt;"$log" 2&gt;&amp;1
+  exit_code=$?
+  if [ "$exit_code" -eq 0 ]; then
+    printf 'DONE exit=%s\n' "$exit_code" &gt;"$status"
+  else
+    printf 'FAILED exit=%s\n' "$exit_code" &gt;"$status"
+  fi
+) &amp;
+pid=$!
+printf '%s\n' "$pid" &gt; ".agent-runs/$run_id.pid"
+printf 'run=%s pid=%s log=%s\n' "$run_id" "$pid" "$log"</code></pre>
+              <p>The wrapper’s exit code indicates whether that invocation returned successfully; it does not prove that its code change is correct. Pair the marker with the exact test command, a diff review, or another acceptance check. Also note that <span class="inline-code">claude --print</span> is suitable only when it matches your installed CLI workflow; check <span class="inline-code">claude --help</span> rather than copying flags into a production script blindly.</p>
+              <pre class="article-code"><code>pid=$(cat .agent-runs/feature-a-YYYYMMDD-HHMMSS.pid)
+status=.agent-runs/feature-a-YYYYMMDD-HHMMSS.status
+
+if [ -f "$status" ]; then
+  cat "$status"
+elif kill -0 "$pid" 2&gt;/dev/null; then
+  echo "RUNNING: PID $pid still exists"
+else
+  echo "UNKNOWN: process exited without a terminal marker"
+fi</code></pre>
+              <p>Add a freshness check for the log when the work has a known maximum quiet period. For example, record the modification time at each poll and alert after 15 minutes with no change—but make the interval longer than normal compilation or test silence. A watcher should report uncertainty, not kill a legitimate slow job by default.</p>
+            </section>
+            <section id="restart">
+              <h2>When to restart Claude Code—and when not to</h2>
+              <p>Restart or open a fresh session when the process has exited, an error is unrecoverable, context is repeatedly thrashing, or the next task is genuinely unrelated. Before doing so, preserve the current diff and the smallest handoff note. A new session is often cleaner than pushing a bloated conversation through more compaction, but it cannot recover an unsaved terminal state.</p>
+              <p>Do not restart merely because a tool has been quiet for a few minutes. First check approval, PID, log freshness, network/service health, and usage state. If you interrupt an active job, use the normal terminal interrupt, wait for it to stop, then verify whether it wrote a marker. Never start a duplicate run against the same migration, deployment, or shared branch until you know the first one is gone.</p>
+              <p>The practical rule is simple: a terminal is not a status system. Treat permission prompts, process state, exit codes, logs, and explicit DONE or FAILED markers as separate signals. That turns “Claude Code is hanging” from an anxious guess into a recoverable operational diagnosis.</p>
+            </section>
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li><a href="https://code.claude.com/docs/en/permissions">Claude Code Docs: Configure permissions</a></li>
+                <li><a href="https://code.claude.com/docs/en/context-window">Claude Code Docs: Explore the context window</a></li>
+                <li><a href="https://code.claude.com/docs/en/errors">Claude Code Docs: Error reference and usage limits</a></li>
+              </ul>
+            </section>
+            <aside class="article-callout" aria-labelledby="resource-title">
+              <h3 id="resource-title">A small operational toolkit</h3>
+              <p><a href="https://github.com/soul-sol/agent-watch">agent-watch</a> is the relevant open-source starting point for PID, log, marker, and stale-run observation. For the broader operating model—delegation boundaries, checkpoints, and review—the <a href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration">Solo Like a Team Claude Code orchestration guide</a> explains the workflow and its stated scope.</p>
+            </aside>
+          </div>
+        </div>
+      </article>
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Operational clarity</p>
+            <h2>Use evidence before interrupting a run</h2>
+            <p>Record the approval state, PID, log, and exit marker so the next action is based on facts.</p>
+          </div>
+          <a class="action action-primary" href="./">Browse all services</a>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

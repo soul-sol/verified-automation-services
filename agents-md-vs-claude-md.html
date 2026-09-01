@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="AGENTS.md vs CLAUDE.md explained: which tools read each file, how nesting and precedence work, and how to keep one source of truth.">
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="AGENTS.md vs CLAUDE.md: what is the difference?">
+    <meta property="og:description" content="A practical guide to AGENTS.md and CLAUDE.md ownership, precedence, nesting, migration, and shared rules.">
+    <meta property="og:url" content="https://soul-sol.github.io/verified-automation-services/agents-md-vs-claude-md.html">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://soul-sol.github.io/verified-automation-services/agents-md-vs-claude-md.html">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>AGENTS.md vs CLAUDE.md: what is the difference?</title>
+    <script type="application/ld+json">
+      {
+        "@context":"https://schema.org","@type":"BlogPosting",
+        "headline":"AGENTS.md vs CLAUDE.md: what is the difference?",
+        "description":"A practical guide to AGENTS.md and CLAUDE.md ownership, precedence, nesting, migration, and shared rules.",
+        "datePublished":"2026-09-02","dateModified":"2026-09-02",
+        "mainEntityOfPage":"https://soul-sol.github.io/verified-automation-services/agents-md-vs-claude-md.html",
+        "author":{"@type":"Organization","name":"Verified Automation Services","url":"https://soul-sol.github.io/verified-automation-services/"},
+        "publisher":{"@type":"Organization","name":"Verified Automation Services","url":"https://soul-sol.github.io/verified-automation-services/"}
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#difference">Difference</a>
+          <a class="nav-link" href="#migration">Migration</a>
+          <a class="nav-link nav-link-primary action action-primary" href="https://lifestep1.gumroad.com/l/claude-md-pattern-library">CLAUDE.md patterns</a>
+        </div>
+      </nav>
+    </header>
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">AI coding instruction files</p>
+            <h1>AGENTS.md vs CLAUDE.md: what is the difference?</h1>
+            <p class="article-dek">Both files can describe how an AI coding assistant should work, but their filenames are not interchangeable. The tool that starts the session determines which instruction contract matters.</p>
+            <div class="article-meta"><span>By Verified Automation Services</span><span>Published <time datetime="2026-09-02">September 2, 2026</time></span><span>9 minute read</span></div>
+          </div>
+        </header>
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#difference">Which tool reads which?</a></li>
+              <li><a href="#precedence">Precedence and nesting</a></li>
+              <li><a href="#source-of-truth">One source of truth</a></li>
+              <li><a href="#migration">Migration and mistakes</a></li>
+            </ol>
+          </nav>
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p><strong>Codex reads <span class="inline-code">AGENTS.md</span>; Claude Code reads <span class="inline-code">CLAUDE.md</span>.</strong> They serve a similar purpose—repository-local instructions for an AI coding tool—but the names belong to different tool conventions. A file is not automatically portable just because its prose looks compatible.</p>
+              <p>If your team uses both tools, keep the shared engineering rules in one canonical document and make each tool-specific file a small, reviewed adapter. That prevents one assistant from receiving a stale copy after a rule changes.</p>
+            </section>
+
+            <section id="difference">
+              <h2>AGENTS.md vs CLAUDE.md: which tool reads which?</h2>
+              <p><span class="inline-code">AGENTS.md</span> is the convention used by Codex for project instructions. Codex looks for applicable files in the directory hierarchy around the working project and applies their guidance while it plans, edits, and verifies work. In a repository, the root file commonly contains the broad contract, while deeper files add rules for a subtree.</p>
+              <p><span class="inline-code">CLAUDE.md</span> is the convention used by Claude Code. Claude Code loads its applicable project instructions from <span class="inline-code">CLAUDE.md</span> files and can also use user-level instructions, depending on how the installation and session are configured. The exact loading locations can differ by product version, so check the tool's own documentation when debugging a surprising result.</p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Filename ownership at a glance</caption>
+                  <thead><tr><th scope="col">File</th><th scope="col">Primary reader</th><th scope="col">Use it for</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="inline-code">AGENTS.md</span></td><td>Codex</td><td>Codex workflow, repository rules, commands, and verification gates</td></tr>
+                    <tr><td><span class="inline-code">CLAUDE.md</span></td><td>Claude Code</td><td>Claude Code workflow, project conventions, and tool-specific guidance</td></tr>
+                    <tr><td>Shared policy document</td><td>Neither automatically</td><td>Canonical rules included or referenced by both adapters</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>The practical consequence is easy to miss: adding a perfect rule to <span class="inline-code">CLAUDE.md</span> will not configure Codex, and adding it only to <span class="inline-code">AGENTS.md</span> will not configure Claude Code. Test each tool in a fresh session instead of inferring that it loaded a file.</p>
+            </section>
+
+            <section id="precedence">
+              <h2>Precedence and nesting: which instruction wins?</h2>
+              <p>Instruction systems are hierarchical. A broad file near the repository root can establish defaults; a file inside a directory can add constraints for the code below it. The closer file is normally the place for narrower rules, such as “run the package-level test command” or “do not edit generated files.”</p>
+              <p>Do not treat nesting as a universal override operator. A more-specific instruction should refine a general one, not casually contradict a safety rule or an acceptance criterion. When two instructions conflict, the tool's documented precedence rules, the file locations, and higher-priority system or user instructions all matter. If the result is important, make the policy unambiguous and verify it with a small probe.</p>
+              <pre class="article-code"><code># Inspect instruction files in the current repository
+find .. -name AGENTS.md -o -name CLAUDE.md
+
+# From the project root, show their relative locations
+find . -name AGENTS.md -o -name CLAUDE.md | sort</code></pre>
+              <p>For a monorepo, a useful layout might be:</p>
+              <pre class="article-code"><code>repo/
+├── AGENTS.md
+├── CLAUDE.md
+├── services/
+│   └── payments/
+│       ├── AGENTS.md
+│       └── CLAUDE.md
+└── packages/
+    └── web/
+        └── AGENTS.md</code></pre>
+              <p>The root files describe rules that apply broadly. The payments files describe payments-specific behavior. The web package may need a Codex-only addition. Keep the narrower files short enough that a maintainer can compare them during review.</p>
+            </section>
+
+            <section id="source-of-truth">
+              <h2>How to keep one source of truth across both files</h2>
+              <p>The safest pattern is not to duplicate every paragraph. Put durable, tool-neutral policy in a canonical file such as <span class="inline-code">docs/ai-instructions.md</span>, then make both adapter files point maintainers to it and contain only the details their reader needs.</p>
+              <pre class="article-code"><code># AGENTS.md and CLAUDE.md should each state:
+- Read docs/ai-instructions.md before changing application code.
+- Follow the repository's test and formatting commands.
+- Treat generated files and secrets as protected.
+- Record verification evidence in the pull request.</code></pre>
+              <p>There are two important caveats. First, a reference is useful to a human only if the assistant actually receives the referenced content; do not assume that a sentence saying “see this file” magically imports it. If the tool does not follow references, copy the small required rule into the adapter or use an officially supported import mechanism. Second, relative paths must be correct from every directory where the file can apply.</p>
+              <p>To prevent drift, update the canonical file first, then review both adapters in the same change. A lightweight check can reject a missing adapter:</p>
+              <pre class="article-code"><code>test -f AGENTS.md && test -f CLAUDE.md
+test -f docs/ai-instructions.md
+git diff --check</code></pre>
+              <p>For high-risk rules, create a harmless verification task. Ask the assistant to name the applicable instruction file, explain the expected command, and make no edits. This checks loading and precedence without using a real feature branch as an experiment.</p>
+            </section>
+
+            <section id="migration">
+              <h2>Migration: moving from one file to the other</h2>
+              <p>Start by inventorying the existing file rather than renaming it blindly. Separate instructions into four groups: shared engineering policy, tool-specific behavior, directory-specific rules, and stale or unverifiable claims. Preserve the first group in the canonical document, translate the second into the destination tool's vocabulary, and place the third at the matching directory depth.</p>
+              <ol>
+                <li>Record the current file path and the command used to start the assistant.</li>
+                <li>Copy the useful rules into a temporary comparison, then remove duplicates and outdated commands.</li>
+                <li>Create the destination adapter with a concise scope statement and links to shared policy.</li>
+                <li>Open a fresh session in the relevant directory and run a read-only loading probe.</li>
+                <li>Commit the migration together with a small test or documentation note that prevents accidental deletion.</li>
+              </ol>
+              <p>If both assistants will remain in use, do not delete the original file after a successful test. Keep both filenames under version control and establish ownership in the README or contributor guide. If only one tool is used, remove the unused adapter only when you are sure another workflow does not depend on it.</p>
+              <h2>Common mistakes that cause silent failures</h2>
+              <ul>
+                <li><strong>Renaming instead of adapting:</strong> <span class="inline-code">AGENTS.md</span> renamed to <span class="inline-code">CLAUDE.md</span> may lose Codex coverage, and the reverse loses Claude Code coverage.</li>
+                <li><strong>Assuming every directory applies:</strong> a file in a sibling directory does not necessarily govern your current working path.</li>
+                <li><strong>Contradictory duplicates:</strong> two copies of a test command can diverge and leave the assistant with an ambiguous instruction.</li>
+                <li><strong>Overloaded prose:</strong> long narratives bury the one command or safety constraint the assistant must not miss.</li>
+                <li><strong>Unverified references:</strong> links to deleted scripts, old package managers, or unavailable tools turn a correct-looking rule into bad execution.</li>
+                <li><strong>Testing only an existing session:</strong> a warm session may retain context that a new session will not have. Re-test after changing instructions.</li>
+              </ul>
+              <p>A good instruction file is explicit about scope, trigger, action, and proof. Say when a rule applies, what the assistant must do, what it must not do, and which command demonstrates completion. That structure works in either filename and makes differences between Codex and Claude Code visible during review.</p>
+              <p>It is also worth distinguishing instructions from project documentation. An architecture decision belongs in the repository’s normal docs; a coding-assistant file should tell the assistant how to use that decision while working. Keep credentials, private prompts, and machine-specific secrets out of both files. Everything committed to the repository may be read by contributors, CI jobs, forks, or automated tooling.</p>
+              <p>Finally, treat the filename as part of your integration surface. A future contributor may open the repository with only Codex or only Claude Code. A short note in each adapter explaining its reader and canonical source makes the setup discoverable without relying on tribal knowledge.</p>
+            </section>
+
+            <aside class="article-callout" aria-labelledby="resource-title">
+              <h2 id="resource-title">Resource: a reusable CLAUDE.md pattern library</h2>
+              <p>Use the <a href="https://lifestep1.gumroad.com/l/claude-md-pattern-library">CLAUDE.md Pattern Library</a> for reusable rule structures, or start with the free <a href="https://github.com/soul-sol/claude-md-patterns">claude-md-patterns repository</a> before adapting the same source-of-truth approach to <span class="inline-code">AGENTS.md</span>.</p>
+            </aside>
+          </div>
+        </div>
+      </article>
+      <section class="section-compact">
+        <div class="container final-cta"><div><p class="eyebrow eyebrow-inverse">Clear instructions, repeatable work</p><h2>Make the applicable rules easy to verify</h2><p>Keep filenames tool-specific, policy shared, and evidence visible.</p></div><a class="action action-primary" href="https://github.com/soul-sol/claude-md-patterns">Review the free patterns</a></div>
+      </section>
+    </main>
+    <footer class="footer"><div class="container footer-grid"><p>Verified Automation Services</p><p>Public samples. Fixed scope. Verifiable delivery.</p><a class="text-link" href="./">Browse all services</a></div></footer>
+  </body>
+</html>

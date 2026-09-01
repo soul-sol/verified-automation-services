@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static workflow guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Run multiple AI coding agents in parallel: worktree isolation, a file-ownership map, background codex exec, claude -p, and gemini dispatch, risk-ordered merges, and stall detection."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Run multiple AI coding agents in parallel: a safe setup">
+    <meta
+      property="og:description"
+      content="A commander/worker workflow with git worktrees, background dispatch across codex, Claude Code, and Gemini CLI, and merges ordered by risk."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/run-multiple-ai-coding-agents-parallel.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/run-multiple-ai-coding-agents-parallel.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Run multiple AI coding agents in parallel: a safe setup</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Run multiple AI coding agents in parallel: a safe setup",
+        "description": "Run multiple AI coding agents in parallel: worktree isolation, a file-ownership map, background codex exec, claude -p, and gemini dispatch, risk-ordered merges, and stall detection.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/run-multiple-ai-coding-agents-parallel.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#isolation">Isolation</a>
+          <a class="nav-link" href="#dispatch">Dispatch</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="solo-team-claude-code-orchestration.html"
+          >
+            Orchestration ebook, USD 14
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Multi-agent coding workflow guide</p>
+            <h1>Run multiple AI coding agents in parallel without wrecking your repo</h1>
+            <p class="article-dek">
+              Parallel agents use separate quotas, cut wall-clock time, and keep
+              each context small. The safety comes from four habits: worktree
+              isolation, a file-ownership map, background dispatch with logs,
+              and merges ordered by risk.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>11 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#why">Why parallelize at all</a></li>
+              <li><a href="#commander">Split into a commander and workers</a></li>
+              <li><a href="#isolation">Isolate every worker in a worktree</a></li>
+              <li><a href="#ownership">Draw a file-ownership map</a></li>
+              <li><a href="#dispatch">Dispatch codex, claude -p, gemini</a></li>
+              <li><a href="#merge">Merge by risk</a></li>
+              <li><a href="#stalls">Detect stalls</a></li>
+              <li><a href="#faq">Common questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                To run multiple AI coding agents in parallel safely, keep one
+                session as the <strong>commander</strong> that plans, verifies,
+                and merges. Give each <strong>worker</strong> its own git
+                worktree and branch, exclusive ownership of a set of files, and
+                a written task spec with a verification command. Dispatch the
+                CLIs non-interactively
+                (<span class="inline-code">codex exec</span>,
+                <span class="inline-code">claude -p</span>,
+                <span class="inline-code">gemini -p</span>) as background
+                processes with one log and one PID file per worker. Merge the
+                lowest-risk branch first and run the test suite after every
+                merge. Treat a worker as finished only when the process exited
+                cleanly <em>and</em> its log ends with a real report.
+              </p>
+            </section>
+
+            <section id="why">
+              <h2>Why parallelize at all</h2>
+              <p>
+                Three practical reasons, none of them about sounding
+                impressive:
+              </p>
+              <ul>
+                <li>
+                  <strong>Quota.</strong> Usage limits are per tool and per
+                  account. If your Claude plan throttles mid-week, your codex
+                  and Gemini allowances are usually untouched. Running several
+                  CLIs concurrently spends several independent quota pools
+                  instead of draining one while the others idle.
+                </li>
+                <li>
+                  <strong>Latency.</strong> A coding agent spends much of its
+                  runtime reading files, waiting on model responses, and
+                  running builds. That is dead wall-clock time for you.
+                  Independent tasks, such as a rate-limit fix and a docs
+                  rewrite, have no reason to wait for each other.
+                </li>
+                <li>
+                  <strong>Context.</strong> One conversation juggling five
+                  tasks accumulates stale decisions, half-finished threads,
+                  and conflicting constraints. One worker per task gives each
+                  a fresh context window and a single, narrow objective, which
+                  is the main quality win, not just a speed win.
+                </li>
+              </ul>
+              <p>
+                Parallelism also has a cost: coordination. If two tasks must
+                touch the same files, run them serially. Parallel agents pay
+                off when tasks are genuinely independent, and the rest of this
+                guide is about enforcing that independence mechanically
+                instead of hoping for it.
+              </p>
+            </section>
+
+            <section id="commander">
+              <h2>Split into a commander and workers</h2>
+              <p>
+                Do not launch five peers and hope they coordinate. They cannot
+                see each other. The pattern that works is one commander session
+                plus any number of workers:
+              </p>
+              <ul>
+                <li>
+                  <strong>The commander</strong> decomposes the work, writes
+                  task specs, dispatches workers, then verifies results by
+                  running the tests itself, reading exit codes, reviewing
+                  diffs, and committing. It avoids writing feature code so its
+                  context stays reserved for judgment.
+                </li>
+                <li>
+                  <strong>Each worker</strong> receives one task, in one
+                  worktree, and reports back through its log file.
+                </li>
+              </ul>
+              <p>
+                Every task spec has four fields: a goal, an explicit file
+                scope, a verification command, and a definition of done. Write
+                it to a file so dispatch is a one-liner:
+              </p>
+              <pre class="article-code"><code>Task: add exponential backoff to the rate-limit client
+Scope: src/ratelimit/**, tests/ratelimit/**
+Forbidden: src/auth/**, package.json, CI workflows
+Verification: npm test -- tests/ratelimit/
+Done means: verification passes and `git status --short`
+shows no changes outside Scope.</code></pre>
+              <p>
+                Add one sentence to every dispatch prompt:
+                <em>do not ask for approval; implement immediately, choose
+                reasonable defaults when something is ambiguous, and report
+                your assumptions in the final message.</em> The most common
+                parallel-agent failure is a worker that exits with a plan and
+                a question instead of an implementation, which looks identical
+                to success if you only check whether the process ended.
+              </p>
+            </section>
+
+            <section id="isolation">
+              <h2>Isolate every worker in a git worktree</h2>
+              <p>
+                Two agents editing one checkout will corrupt each other's
+                state mid-run. <span class="inline-code">git worktree</span>
+                gives each worker its own working directory and branch while
+                sharing the repository's object database:
+              </p>
+              <pre class="article-code"><code>mkdir -p .agents/specs .agents/logs .agents/work
+printf '.agents/\n' &gt;&gt; .git/info/exclude
+
+git worktree add -b agent/ratelimit .agents/work/ratelimit
+git worktree add -b agent/docs      .agents/work/docs
+git worktree add -b agent/changelog .agents/work/changelog
+
+git worktree list</code></pre>
+              <p>
+                Keeping worktrees under an excluded path stops the main
+                checkout from seeing them as untracked noise. Each worker
+                later commits to its own branch, so nothing conflicts until
+                you merge deliberately.
+              </p>
+              <p>
+                Two caveats worth knowing before you script this. First,
+                build artifacts and dependencies
+                (<span class="inline-code">node_modules</span>,
+                <span class="inline-code">.venv</span>,
+                <span class="inline-code">target</span>) are not shared
+                between worktrees, so each worker that must build or test
+                needs its own install step, which costs disk and a few
+                minutes. Second, uncommitted files stay inside their
+                worktree, which is exactly the isolation you want. After a
+                branch is merged, clean up:
+              </p>
+              <pre class="article-code"><code>git worktree remove .agents/work/docs
+git branch -d agent/docs</code></pre>
+              <p>
+                For a longer treatment of branch layout and cleanup, see
+                <a href="git-worktree-parallel-ai-agents.html">
+                  parallel agents without merge hell
+                </a>.
+              </p>
+            </section>
+
+            <section id="ownership">
+              <h2>Draw a file-ownership map</h2>
+              <p>
+                Worktrees prevent physical collisions; the ownership map
+                prevents logical ones. The rule is one writer per file. If two
+                tasks need the same file, they are not parallel tasks, and one
+                of them must wait or produce a patch for review instead.
+              </p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Example ownership map for three workers</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Worker</th>
+                      <th scope="col">Owns</th>
+                      <th scope="col">Off limits</th>
+                      <th scope="col">Merge risk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>changelog</td>
+                      <td>CHANGELOG.md</td>
+                      <td>src/**, tests/**</td>
+                      <td>Low</td>
+                    </tr>
+                    <tr>
+                      <td>docs</td>
+                      <td>docs/**, README.md</td>
+                      <td>src/**, tests/**</td>
+                      <td>Low</td>
+                    </tr>
+                    <tr>
+                      <td>ratelimit</td>
+                      <td>src/ratelimit/**, tests/ratelimit/**</td>
+                      <td>src/auth/**, package.json</td>
+                      <td>Medium</td>
+                    </tr>
+                    <tr>
+                      <td>commander</td>
+                      <td>package.json, CI workflows, migrations</td>
+                      <td>merged serially, last</td>
+                      <td>High</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                Shared surfaces like dependency manifests, CI configuration,
+                and database migrations belong to the commander or one
+                designated worker. They are where parallel agents step on
+                each other hardest, so serialize them and merge them last.
+              </p>
+            </section>
+
+            <section id="dispatch">
+              <h2>Dispatch codex, claude -p, and gemini in the background</h2>
+              <p>
+                All three CLIs have a non-interactive mode suitable for
+                scripting: <span class="inline-code">codex exec</span>,
+                <span class="inline-code">claude -p</span> (print mode), and
+                <span class="inline-code">gemini -p</span>. Launch each worker
+                with <span class="inline-code">nohup</span>, its worktree as
+                the working directory, and a dedicated log and PID file:
+              </p>
+              <pre class="article-code"><code># codex: non-interactive exec, cwd pointed at the worktree
+nohup codex exec -C .agents/work/ratelimit \
+  --sandbox workspace-write \
+  "$(cat .agents/specs/ratelimit.md)" \
+  &gt; .agents/logs/ratelimit.log 2&gt;&amp;1 &amp;
+echo $! &gt; .agents/logs/ratelimit.pid
+
+# Claude Code: headless print mode inside a subshell
+(
+  cd .agents/work/docs || exit 1
+  nohup claude -p --permission-mode acceptEdits \
+    "$(cat ../../specs/docs.md)" \
+    &gt; ../../logs/docs.log 2&gt;&amp;1 &amp;
+  echo $! &gt; ../../logs/docs.pid
+)
+
+# Gemini CLI: same pattern
+(
+  cd .agents/work/changelog || exit 1
+  nohup gemini -p "$(cat ../../specs/changelog.md)" \
+    &gt; ../../logs/changelog.log 2&gt;&amp;1 &amp;
+  echo $! &gt; ../../logs/changelog.pid
+)</code></pre>
+              <p>
+                That is the entire dispatch contract: one process, one log,
+                one PID per worker. The permission flags matter as much as
+                the prompts. <span class="inline-code">--sandbox
+                workspace-write</span> confines codex to writing inside its
+                working directory, and
+                <span class="inline-code">--permission-mode acceptEdits</span>
+                lets Claude Code edit files without blanket bypass. Flags in
+                these tools change between versions, so confirm names with
+                <span class="inline-code">--help</span> before scripting a
+                new setup.
+              </p>
+              <p>
+                Dispatching across different CLIs is also quota strategy.
+                When one worker burns its weekly allowance, reassign that task
+                to another CLI instead of waiting for a reset. For codex
+                specifically,
+                <a href="how-to-run-codex-exec-in-parallel-background-workers.html">
+                  this worker-loop walkthrough
+                </a>
+                covers log rotation and exit-code capture in more depth.
+              </p>
+            </section>
+
+            <section id="merge">
+              <h2>Merge by risk, not by convenience</h2>
+              <p>
+                Merge one branch at a time, lowest risk first, and run the
+                test suite after every merge rather than once at the end.
+                Before merging, check that the diff respects the ownership
+                map, because agents sometimes reformat unrelated files they
+                merely read:
+              </p>
+              <pre class="article-code"><code>git diff --name-only main...agent/docs
+git diff --stat main...agent/ratelimit
+
+git switch main
+git merge --no-ff agent/docs
+npm test
+git merge --no-ff agent/ratelimit
+npm test</code></pre>
+              <p>
+                If the changed-file list crosses the map, stop and inspect
+                before merging. Order matters: docs and generated output
+                first, isolated feature modules next, and shared-file changes
+                such as dependency bumps, CI edits, or migrations last, after
+                everything they might affect is already in. When a merge does
+                conflict, the commander resolves it. Never hand a conflicted
+                worktree to another worker to "fix up", because it lacks the
+                intent behind both sides.
+              </p>
+              <p>
+                One more pattern earns its cost on risky core logic: assign
+                the same spec to two workers in separate worktrees, compare
+                the two diffs, and adopt the better one, or combine them. It
+                spends double quota on the task, so reserve it for changes
+                where being wrong is expensive.
+              </p>
+            </section>
+
+            <section id="stalls">
+              <h2>Detect stalls before they cost hours</h2>
+              <p>
+                Two failure modes ruin parallel runs: a worker that exits
+                without doing the work (an error, a permission prompt, a
+                truncated prompt), and a worker that hangs silently for a
+                long time. Silence is not progress, and exit is not success.
+                Check state explicitly instead of assuming:
+              </p>
+              <pre class="article-code"><code>for w in ratelimit docs changelog; do
+  pid=$(cat ".agents/logs/$w.pid" 2&gt;/dev/null)
+  if [ -n "$pid" ] &amp;&amp; kill -0 "$pid" 2&gt;/dev/null; then
+    echo "$w: running"
+  else
+    echo "$w: exited — last log lines:"
+    tail -n 5 ".agents/logs/$w.log"
+  fi
+done</code></pre>
+              <p>
+                Judge completion by the exit status <em>and</em> the end of
+                the log. Each CLI signals differently: recent codex versions
+                print a token-usage summary at the end of a normal
+                <span class="inline-code">exec</span> run, while
+                <span class="inline-code">claude -p</span> ends with its final
+                answer text. The portable rule is: exited zero, plus a
+                substantive final report in the log, equals done. Anything
+                else, a bare exit, an error, or a trailing question, means
+                the task is unfinished.
+              </p>
+              <p>
+                For a live process whose log has not grown in several
+                minutes, look at what it is doing before killing it; long
+                test suites look identical to hangs from the outside. A full
+                watcher script with per-worker markers is in
+                <a href="stall-detection-for-background-ai-agents.html">
+                  DONE, FAILED, or stalled?
+                </a>
+              </p>
+            </section>
+
+            <section id="faq">
+              <h2>Common questions</h2>
+
+              <h3>How many agents should I run at once?</h3>
+              <p>
+                Start with two or three on genuinely independent tasks.
+                Coordination, merge, and verification overhead grow with
+                every worker, and a large fan-out of related tasks usually
+                collapses into merge conflicts no matter how good your
+                ownership map is.
+              </p>
+
+              <h3>Do the agents share one context or conversation?</h3>
+              <p>
+                No. Each CLI process is independent, with its own context
+                window and its own view of the repo through its worktree.
+                That separation is the point: the commander holds the plan,
+                and each worker holds exactly one task.
+              </p>
+
+              <h3>Can I run this on one laptop?</h3>
+              <p>
+                Yes. The CLIs are network-bound for most of their runtime.
+                The resource pressure comes from concurrent builds and test
+                suites in separate worktrees, so watch memory and stagger
+                heavy test runs if the machine is small.
+              </p>
+
+              <h3>What if two workers edited the same file anyway?</h3>
+              <p>
+                The ownership map is a convention, not a lock. Detect it at
+                merge time with
+                <span class="inline-code">git diff --name-only</span> against
+                each branch, resolve the overlap yourself in merge order, and
+                tighten the spec that allowed it.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://git-scm.com/docs/git-worktree">
+                    Git documentation: git-worktree
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.anthropic.com/en/docs/claude-code/overview">
+                    Claude Code documentation
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/openai/codex">
+                    OpenAI codex CLI repository
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/google-gemini/gemini-cli">
+                    Gemini CLI repository
+                  </a>
+                </li>
+              </ul>
+            </section>
+
+            <aside class="article-callout" aria-labelledby="resource-box-title">
+              <h3 id="resource-box-title">Go deeper</h3>
+              <p>
+                This page is the skeleton. The ebook
+                <a href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration">
+                  <em>Working Solo, Like a Team: Claude Code Orchestration in
+                  Practice</em> (USD 14)
+                </a>
+                is the full operating manual, covering quota planning across
+                CLIs, dispatch templates, verification gates, and failure
+                playbooks. The companion repo
+                <a href="https://github.com/soul-sol/claude-code-orchestration-ko">
+                  claude-code-orchestration-ko
+                </a>
+                is free and includes the scripts and spec templates.
+              </p>
+            </aside>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

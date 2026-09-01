@@ -12,6 +12,9 @@
   <url><loc>https://soul-sol.github.io/verified-automation-services/adversarial-review-prompt-pack.html</loc></url>
   <url><loc>https://soul-sol.github.io/verified-automation-services/claude-md-pattern-library.html</loc></url>
   <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/claude-md-best-practices-examples.html</loc>
+  </url>
+  <url>
     <loc>https://soul-sol.github.io/verified-automation-services/agents-md-audit-kit.html</loc>
   </url>
   <url>
@@ -22,6 +25,9 @@
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/claude-code-weekly-limit-strategies.html</loc>
+  </url>
+  <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/claude-code-stuck-not-responding-fix.html</loc>
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/claude-md-rules-that-agents-actually-follow.html</loc>
@@ -39,6 +45,9 @@
     <loc>https://soul-sol.github.io/verified-automation-services/exec-format-error-docker-arm64-fix.html</loc>
   </url>
   <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/agents-md-vs-claude-md.html</loc>
+  </url>
+  <url>
     <loc>https://soul-sol.github.io/verified-automation-services/github-actions-ci-triage-ebook.html</loc>
   </url>
   <url>
@@ -52,6 +61,9 @@
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/how-to-run-codex-exec-in-parallel-background-workers.html</loc>
+  </url>
+  <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/run-multiple-ai-coding-agents-parallel.html</loc>
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/spreadsheet-integrity-scorecard.html</loc>
