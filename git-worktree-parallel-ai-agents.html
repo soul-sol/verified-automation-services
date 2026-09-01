@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static operations guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Run parallel AI coding agents safely with Git worktrees, explicit branch names, file ownership, risk-ordered merges, and clean removal."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Running parallel AI coding agents without merge hell: a Git worktree workflow">
+    <meta
+      property="og:description"
+      content="A practical worktree workflow for isolating parallel agents and integrating their changes deliberately."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/git-worktree-parallel-ai-agents.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/git-worktree-parallel-ai-agents.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Running parallel AI coding agents without merge hell: a Git worktree workflow</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Running parallel AI coding agents without merge hell: a Git worktree workflow",
+        "description": "Run parallel AI coding agents safely with Git worktrees, explicit branch names, file ownership, risk-ordered merges, and clean removal.",
+        "datePublished": "2026-09-01",
+        "dateModified": "2026-09-01",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/git-worktree-parallel-ai-agents.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#setup">Set up</a>
+          <a class="nav-link" href="#merge">Merge</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#cleanup"
+          >
+            Clean up
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Parallel AI agent operations guide</p>
+            <h1>Running parallel AI coding agents without merge hell: a Git worktree workflow</h1>
+            <p class="article-dek">
+              Give every writing agent its own branch, directory, and declared
+              file ownership. Integrate completed branches in risk order, test
+              after every merge, and remove worktrees only after preserving evidence.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-01">September 1, 2026</time></span>
+              <span>12 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#collision">Why one checkout fails</a></li>
+              <li><a href="#setup">Create named worktrees</a></li>
+              <li><a href="#ownership">Map file ownership</a></li>
+              <li><a href="#merge">Merge by risk</a></li>
+              <li><a href="#cleanup">Clean up safely</a></li>
+              <li><a href="#avoid">When not to use worktrees</a></li>
+              <li><a href="#preflight">Preflight every agent wave</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Two AI agents should not write in the same checkout. They share
+                one index, one working directory, generated files, caches, and
+                often the same formatter or test artifacts. One agent can stage,
+                rename, regenerate, or delete files while the other is still
+                reasoning about an older filesystem state. The result may be a
+                conflict, but the more dangerous result is a clean-looking diff
+                that silently mixes both tasks.
+              </p>
+              <p>
+                Use one Git worktree and one branch per agent. Start every branch
+                from the same reviewed commit, assign non-overlapping write sets,
+                and merge into an integration branch one at a time. Worktrees
+                isolate files; they do not remove semantic conflicts, shared
+                infrastructure limits, or the need to review each agent's patch.
+              </p>
+            </section>
+
+            <section id="collision">
+              <h2>Why two agents in one checkout corrupt each other</h2>
+              <p>
+                An agent does not hold a private snapshot while it works. It
+                repeatedly reads the live tree, runs commands, and writes back.
+                Imagine agent A changing an API response while agent B updates
+                tests. B reads the old response, A runs a formatter, B rewrites
+                the same test fixture, and A stages everything with
+                <span class="inline-code">git add -A</span>. Both agents may
+                report success even though neither reviewed the combined state.
+              </p>
+              <pre class="article-code"><code># Unsafe: both processes mutate /srv/app
+codex exec --cd /srv/app "Refactor the billing API" &amp;
+codex exec --cd /srv/app "Add billing API tests" &amp;
+wait
+
+# Shared state includes more than tracked source files:
+git -C /srv/app status --short
+git -C /srv/app diff --cached</code></pre>
+              <p>
+                Git's index is especially easy to overlook. A checkout has one
+                index, so staging is a shared mutation. Package managers may
+                rewrite a lockfile; build systems may clean a common output
+                directory; tests may update snapshots. Even if agents promise to
+                edit different source files, their tools can overlap. A worktree
+                supplies a separate working tree and per-worktree index while
+                sharing the repository's object database.
+              </p>
+            </section>
+
+            <section id="setup">
+              <h2>Create branches and worktrees from a known baseline</h2>
+              <p>
+                Begin in a clean coordinator checkout. Fetching is optional, but
+                the base commit must be explicit and stable. Record it before
+                creating workers so you can prove that every task started from
+                the same state.
+              </p>
+              <pre class="article-code"><code>repo=/srv/app
+run_id=20260901-agent-wave-01
+base=$(git -C "$repo" rev-parse HEAD)
+
+git -C "$repo" status --short
+printf 'base=%s\n' "$base" &gt;"$repo/.git/agent-wave-$run_id"
+
+git -C "$repo" worktree add \
+  -b "agent/$run_id-api" \
+  "/srv/worktrees/$run_id-api" "$base"
+
+git -C "$repo" worktree add \
+  -b "agent/$run_id-tests" \
+  "/srv/worktrees/$run_id-tests" "$base"
+
+git -C "$repo" worktree list --porcelain</code></pre>
+              <p>
+                A useful branch name carries the run, responsibility, and no
+                personal identity: <span class="inline-code">agent/&lt;run&gt;-&lt;scope&gt;</span>.
+                Avoid names such as <span class="inline-code">agent-1</span> or
+                <span class="inline-code">fix-stuff</span>; they become
+                ambiguous in logs and cleanup scripts. Use
+                <span class="inline-code">-b</span>, not
+                <span class="inline-code">-B</span>, because resetting an
+                existing branch would discard or redirect prior work.
+              </p>
+              <p>
+                Launch each agent with its worktree as the exact working root.
+                Give it the base commit, branch, allowed files, forbidden files,
+                acceptance criteria, and verification command. A directory alone
+                is not a task boundary.
+              </p>
+              <pre class="article-code"><code>codex exec --cd "/srv/worktrees/$run_id-api" \
+  "Edit src/api/** only. Do not edit tests or lockfiles.
+   Run npm test -- api. Commit the reviewed patch." &amp;
+
+codex exec --cd "/srv/worktrees/$run_id-tests" \
+  "Edit tests/api/** only. Do not edit src or snapshots.
+   Run npm test -- api. Commit the reviewed patch." &amp;
+wait</code></pre>
+            </section>
+
+            <section id="ownership">
+              <h2>Use a file-ownership map before agents start</h2>
+              <p>
+                Worktrees prevent live-file interference, but agents can still
+                produce branches that conflict at merge time. Prevent that with
+                a small ownership map. Assign one writer to each path and name
+                shared files separately. Generated clients, schema files,
+                snapshots, package manifests, migrations, and lockfiles are
+                shared even when the visible task sounds independent.
+              </p>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>A bounded ownership map for one agent wave</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Agent</th>
+                      <th scope="col">May write</th>
+                      <th scope="col">Must not write</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>API</td>
+                      <td><span class="inline-code">src/api/**</span></td>
+                      <td>tests, schema, lockfile</td>
+                    </tr>
+                    <tr>
+                      <td>Tests</td>
+                      <td><span class="inline-code">tests/api/**</span></td>
+                      <td>src, snapshots, lockfile</td>
+                    </tr>
+                    <tr>
+                      <td>Integrator</td>
+                      <td>schema, snapshots, lockfile</td>
+                      <td>unrelated product code</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                Enforce the map after the agent finishes instead of trusting its
+                summary. Compare changed paths with the declared write set. Stop
+                integration when anything unexpected appears.
+              </p>
+              <pre class="article-code"><code>git -C "/srv/worktrees/$run_id-api" diff \
+  --name-only "$base"...HEAD
+
+# Example allow-list check for the API worker
+git -C "/srv/worktrees/$run_id-api" diff --name-only "$base"...HEAD |
+  awk '!/^src\/api\// { print "OUT_OF_SCOPE " $0; bad=1 }
+       END { exit bad }'</code></pre>
+            </section>
+
+            <section id="merge">
+              <h2>Merge in order of integration risk</h2>
+              <p>
+                Do not merge in the order agents finish. Merge the branch that
+                changes the contract or architecture first, then dependent
+                implementation, then tests and documentation. A database
+                migration, API schema, dependency upgrade, or public type has a
+                larger blast radius than an isolated test or prose correction.
+              </p>
+              <ol>
+                <li>Review each branch against its original base and ownership map.</li>
+                <li>Merge contract and migration changes first.</li>
+                <li>Merge core implementation next and run focused checks.</li>
+                <li>Rebase dependent branches onto the new integration tip if needed.</li>
+                <li>Merge tests, docs, and low-risk leaf changes last.</li>
+                <li>Run the full acceptance suite on the combined state.</li>
+              </ol>
+              <pre class="article-code"><code>git switch -c "integrate/$run_id" "$base"
+
+git merge --no-ff "agent/$run_id-api"
+npm test -- api
+
+# Rebase only after preserving the worker's original commit.
+git -C "/srv/worktrees/$run_id-tests" rebase "integrate/$run_id"
+git merge --no-ff "agent/$run_id-tests"
+
+npm test
+npm run lint
+git diff "$base"...HEAD --check</code></pre>
+              <p>
+                Resolve conflicts in the integration worktree, not by asking two
+                agents to edit the same conflict markers. The integrator owns the
+                combined behavior and can reject a branch when its assumptions no
+                longer hold. A zero-conflict merge is not proof of compatibility;
+                tests and a combined diff review remain mandatory.
+              </p>
+            </section>
+
+            <section id="cleanup">
+              <h2>Clean up without deleting evidence</h2>
+              <p>
+                First confirm that each branch is committed, reviewed, and either
+                merged or intentionally rejected. Then remove the linked
+                worktrees with Git. Deleting directories directly can leave stale
+                administrative records. Avoid
+                <span class="inline-code">--force</span> until you have inspected
+                untracked and modified files.
+              </p>
+              <pre class="article-code"><code>git -C "$repo" worktree list
+git -C "/srv/worktrees/$run_id-api" status --short
+git -C "/srv/worktrees/$run_id-tests" status --short
+
+git -C "$repo" worktree remove "/srv/worktrees/$run_id-api"
+git -C "$repo" worktree remove "/srv/worktrees/$run_id-tests"
+
+# Preview stale metadata before removing it.
+git -C "$repo" worktree prune --dry-run --verbose
+git -C "$repo" worktree prune --verbose
+
+# Delete merged branches only after verifying containment.
+git -C "$repo" branch --merged "integrate/$run_id"
+git -C "$repo" branch -d "agent/$run_id-api" "agent/$run_id-tests"</code></pre>
+              <p>
+                If a worktree lives on storage that may disappear temporarily,
+                lock it with a reason so normal pruning does not mistake it for
+                abandoned metadata. If directories were moved manually, use
+                <span class="inline-code">git worktree repair</span> rather than
+                editing files inside <span class="inline-code">.git</span>.
+              </p>
+            </section>
+
+            <section id="avoid">
+              <h2>When not to use worktrees</h2>
+              <p>
+                Worktrees are unnecessary for read-only reviewers, one tiny
+                sequential edit, or tasks that can be completed faster than the
+                coordination overhead. They are also the wrong abstraction when
+                workers require different untrusted dependency environments;
+                use containers or virtual machines for process and operating
+                system isolation. Worktrees share Git objects and usually share
+                credentials, network access, databases, ports, and external
+                services unless you isolate those separately.
+              </p>
+              <p>
+                Do not parallelize tightly coupled work merely because worktrees
+                make it possible. If every task changes the same schema, central
+                module, lockfile, or generated output, serialize the work. A
+                single agent plus a read-only reviewer is often faster than two
+                writers followed by a difficult reconciliation. Parallelism pays
+                when scopes are independently testable and integration has a
+                clear owner.
+              </p>
+              <p>
+                The final acceptance rule is simple: the coordinator reviews
+                every branch, verifies allowed paths, integrates by risk, and
+                tests the combined tree. Worktrees remove live checkout races.
+                Good task design removes most merge conflicts. Neither replaces
+                engineering judgment.
+              </p>
+            </section>
+
+            <section id="preflight">
+              <h2>Preflight every agent wave</h2>
+              <p>
+                Before launching, prove that the planned branches and paths do
+                not already exist. Check disk space as well: linked worktrees
+                share Git objects, but dependency directories and build outputs
+                can still be duplicated. Confirm that each verification command
+                is non-interactive and that workers will not compete for one
+                development port, test database, emulator, or mutable cloud
+                environment. Filesystem isolation does not isolate those resources.
+              </p>
+              <pre class="article-code"><code>git -C "$repo" status --short
+git -C "$repo" show-ref --verify \
+  "refs/heads/agent/$run_id-api" &amp;&amp; exit 73 || true
+test ! -e "/srv/worktrees/$run_id-api" || exit 73
+
+df -h /srv/worktrees
+git -C "$repo" worktree list --porcelain
+
+# Assign distinct runtime resources when tests need them.
+API_PORT=4311 TEST_DATABASE=agent_wave_api \
+  npm test -- api</code></pre>
+              <p>
+                Record a compact task packet beside the run evidence. It should
+                name the exact base commit, branch, worktree path, goal, write
+                allow-list, explicit exclusions, verification command, and stop
+                condition. The stop condition matters: an agent that discovers a
+                required edit outside its ownership should report the dependency,
+                not quietly broaden its patch.
+              </p>
+              <pre class="article-code"><code>task_id: wave-01-api
+base: 4a1f3c2
+branch: agent/20260901-agent-wave-01-api
+worktree: /srv/worktrees/20260901-agent-wave-01-api
+writes: [src/api/**]
+excludes: [package-lock.json, schema/**, tests/**]
+verify: npm test -- api
+stop: any required change outside writes</code></pre>
+              <p>
+                After launch, preserve per-agent logs and final statuses outside
+                disposable build directories. A committed branch proves only
+                what Git recorded; it does not preserve why the agent stopped,
+                which command failed, or whether a generated file was deliberately
+                excluded. The task packet plus raw diff and verification result
+                gives the integrator enough context to accept, revise, or reject
+                the branch without rerunning the entire agent conversation.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://git-scm.com/docs/git-worktree">
+                    Git documentation: git-worktree
+                  </a>
+                </li>
+                <li>
+                  <a href="https://git-scm.com/docs/git-merge">
+                    Git documentation: git-merge
+                  </a>
+                </li>
+                <li>
+                  <a href="https://git-scm.com/docs/git-diff">
+                    Git documentation: git-diff
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resources</p>
+            <h2 id="resources-title">Build a repeatable orchestration workflow</h2>
+            <p>
+              Start with the free repository, or use the complete field guide
+              for assigning, supervising, and integrating parallel agent work.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a
+              class="action action-primary"
+              href="https://github.com/soul-sol/claude-code-orchestration-ko"
+            >
+              Get the free templates
+            </a>
+            <a
+              class="action action-primary"
+              href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration"
+            >
+              Read the orchestration book
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

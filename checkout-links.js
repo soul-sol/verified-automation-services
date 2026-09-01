@@ -2,6 +2,8 @@
   "use strict";
 
   const checkoutLinks = Object.freeze({
+    "adversarial-review-prompt-pack": "https://lifestep1.gumroad.com/l/adversarial-review-prompt-pack",
+    "claude-md-pattern-library": "https://lifestep1.gumroad.com/l/claude-md-pattern-library",
     "agents-md-audit-kit": "https://lifestep1.gumroad.com/l/agents-md-audit-kit",
     "codex-agents-operations-handbook": null,
     "developer-reliability-bundle": null,

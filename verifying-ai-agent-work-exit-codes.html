@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static operations guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Verify AI agent work without silent green builds by preserving exit codes, using pipefail and PIPESTATUS, auditing traps, and checking CI error controls."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Verifying AI agent work: exit codes, PIPESTATUS, and the silent-green trap">
+    <meta
+      property="og:description"
+      content="Shell and CI patterns that keep failed agent verification from looking successful."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/verifying-ai-agent-work-exit-codes.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/verifying-ai-agent-work-exit-codes.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Verifying AI agent work: exit codes, PIPESTATUS, and the silent-green trap</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Verifying AI agent work: exit codes, PIPESTATUS, and the silent-green trap",
+        "description": "Verify AI agent work without silent green builds by preserving exit codes, using pipefail and PIPESTATUS, auditing traps, and checking CI error controls.",
+        "datePublished": "2026-09-01",
+        "dateModified": "2026-09-01",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/verifying-ai-agent-work-exit-codes.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#pipelines">Pipelines</a>
+          <a class="nav-link" href="#ci">CI</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#checklist"
+          >
+            Checklist
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">AI agent verification guide</p>
+            <h1>Verifying AI agent work: exit codes, PIPESTATUS, and the silent-green trap</h1>
+            <p class="article-dek">
+              A polished agent summary is not verification. Preserve the status
+              of the command that matters, make pipelines fail honestly, audit
+              cleanup traps and CI exceptions, then inspect the resulting diff.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-01">September 1, 2026</time></span>
+              <span>12 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#pipelines">Why tail hides failures</a></li>
+              <li><a href="#strict-mode">Use strict mode carefully</a></li>
+              <li><a href="#pipestatus">Capture PIPESTATUS</a></li>
+              <li><a href="#traps">Keep traps honest</a></li>
+              <li><a href="#ci">Audit continue-on-error</a></li>
+              <li><a href="#checklist">Acceptance checklist</a></li>
+              <li><a href="#test-verifier">Test the verifier itself</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Verification is a chain of evidence: the intended command ran,
+                its real exit status survived logging and cleanup, the CI system
+                did not downgrade the failure, and the final patch satisfies the
+                task. Break any link and a failed test can appear green. This is
+                common when an agent runs <span class="inline-code">test | tail</span>,
+                prints reassuring output, and reports the pipeline's status—the
+                status of <span class="inline-code">tail</span>—instead of the test.
+              </p>
+              <p>
+                For Bash verification scripts, start with
+                <span class="inline-code">set -Eeuo pipefail</span>, capture
+                statuses immediately, and make cleanup return the original code.
+                In GitHub Actions, inspect both the step's pre-exception
+                <span class="inline-code">outcome</span> and its final
+                <span class="inline-code">conclusion</span> when
+                <span class="inline-code">continue-on-error</span> is present.
+              </p>
+            </section>
+
+            <section id="pipelines">
+              <h2>Why <span class="inline-code">| tail</span> hides failures</h2>
+              <p>
+                Without Bash's <span class="inline-code">pipefail</span> option,
+                a pipeline returns the status of its last command. Logging tools
+                such as <span class="inline-code">tail</span>,
+                <span class="inline-code">tee</span>, and
+                <span class="inline-code">sed</span> often succeed after the
+                program on their left fails. The log contains the failure, but
+                the shell presents zero to the caller.
+              </p>
+              <pre class="article-code"><code># The test exits 1. tail reads its input and exits 0.
+npm test 2&gt;&amp;1 | tail -n 80
+printf 'reported status=%s\n' "$?"   # commonly 0
+
+# This is also unsafe without pipefail.
+pytest -q 2&gt;&amp;1 | tee test.log
+echo "verification passed"</code></pre>
+              <p>
+                The bug is not cosmetic. A wrapper, agent supervisor, or CI
+                runner receives zero and marks the step successful. Later agents
+                use that false success as their baseline. Always decide which
+                command owns success before adding output filters.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -o pipefail
+
+npm test 2&gt;&amp;1 | tail -n 80
+rc=$?
+printf 'test pipeline status=%s\n' "$rc"
+exit "$rc"</code></pre>
+              <p>
+                With <span class="inline-code">pipefail</span>, the pipeline
+                returns the rightmost nonzero command status, or zero only when
+                every component succeeds. That is usually the desired rule for
+                verification logs. It still does not tell you which component
+                failed when several fail; use
+                <span class="inline-code">PIPESTATUS</span> for that detail.
+              </p>
+            </section>
+
+            <section id="strict-mode">
+              <h2>Use <span class="inline-code">set -euo pipefail</span> as a baseline, not magic</h2>
+              <p>
+                Strict mode reduces accidental success. The
+                <span class="inline-code">-e</span> option exits on many unhandled
+                nonzero statuses, <span class="inline-code">-u</span> rejects
+                unset variables, and <span class="inline-code">pipefail</span>
+                exposes failures inside pipelines. Add
+                <span class="inline-code">-E</span> when an
+                <span class="inline-code">ERR</span> trap should be inherited by
+                shell functions, command substitutions, and subshell contexts.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -Eeuo pipefail
+
+verify() {
+  npm run lint
+  npm test 2&gt;&amp;1 | tee artifacts/test.log
+  npm run build
+}
+
+mkdir -p artifacts
+verify</code></pre>
+              <p>
+                Bash has documented exceptions to
+                <span class="inline-code">errexit</span>. Failures used as an
+                <span class="inline-code">if</span> condition, in most
+                <span class="inline-code">&&</span> or
+                <span class="inline-code">||</span> lists, after
+                <span class="inline-code">!</span>, and in non-final pipeline
+                commands without <span class="inline-code">pipefail</span> may not
+                terminate the script. Use explicit branches when failure is
+                expected, and never assume <span class="inline-code">-e</span>
+                replaces status handling.
+              </p>
+              <pre class="article-code"><code># Honest expected-failure handling
+if ! npm test -- --runInBand; then
+  printf 'Focused tests failed; rejecting agent output.\n' &gt;&amp;2
+  exit 1
+fi
+
+# Dangerous: hides every failure and continues
+npm test || true</code></pre>
+            </section>
+
+            <section id="pipestatus">
+              <h2>Capture <span class="inline-code">PIPESTATUS[0]</span> immediately</h2>
+              <p>
+                Bash stores the status of every command in the most recent
+                foreground pipeline in the
+                <span class="inline-code">PIPESTATUS</span> array. Index zero is
+                the first command. Copy the array immediately: almost any later
+                command, including a diagnostic <span class="inline-code">echo</span>,
+                replaces it.
+              </p>
+              <pre class="article-code"><code>set +e
+npm test 2&gt;&amp;1 | tee artifacts/test.log | tail -n 120
+statuses=("${PIPESTATUS[@]}")
+set -e
+
+test_rc=${statuses[0]}
+tee_rc=${statuses[1]}
+tail_rc=${statuses[2]}
+
+printf 'test=%s tee=%s tail=%s\n' \
+  "$test_rc" "$tee_rc" "$tail_rc"
+
+(( test_rc == 0 )) || exit "$test_rc"
+(( tee_rc == 0 )) || exit "$tee_rc"
+(( tail_rc == 0 )) || exit "$tail_rc"</code></pre>
+              <p>
+                Temporarily disabling <span class="inline-code">-e</span> lets
+                the script inspect all statuses instead of exiting before it can
+                write evidence. The important part is restoring strict mode and
+                explicitly exiting nonzero. If only the producer matters, capture
+                <span class="inline-code">rc=${PIPESTATUS[0]}</span> immediately.
+              </p>
+              <p>
+                This array is Bash-specific. If a script declares
+                <span class="inline-code">#!/bin/sh</span>, do not use
+                <span class="inline-code">PIPESTATUS</span> or assume
+                <span class="inline-code">pipefail</span> exists. Either require
+                Bash explicitly or avoid a pipeline by sending command output to
+                a file and displaying it afterward.
+              </p>
+              <pre class="article-code"><code>#!/bin/sh
+log=artifacts/test.log
+if npm test &gt;"$log" 2&gt;&amp;1; then
+  tail -n 120 "$log"
+else
+  rc=$?
+  tail -n 120 "$log"
+  exit "$rc"
+fi</code></pre>
+            </section>
+
+            <section id="traps">
+              <h2>Do not let cleanup traps overwrite the exit code</h2>
+              <p>
+                Traps are valuable for deleting temporary files and writing run
+                receipts. They become dangerous when the trap runs another
+                command before saving <span class="inline-code">$?</span>, or
+                explicitly exits zero. Capture the incoming status as the first
+                action, disable recursive traps if necessary, perform cleanup,
+                then return that original status.
+              </p>
+              <pre class="article-code"><code># Broken: explicit exit 0 turns failure into success.
+cleanup_bad() {
+  rm -f "$tmp_file"
+  exit 0
+}
+trap cleanup_bad EXIT
+
+# Correct: preserve the status that triggered EXIT.
+cleanup() {
+  rc=$?
+  trap - EXIT
+  rm -f -- "$tmp_file" || true
+  printf 'verification_exit=%s\n' "$rc" &gt;artifacts/exit.txt
+  exit "$rc"
+}
+trap cleanup EXIT</code></pre>
+              <p>
+                An <span class="inline-code">ERR</span> trap has the same
+                evidence rule. Save the status before formatting messages.
+                Quote optional variables safely when
+                <span class="inline-code">nounset</span> is enabled, and keep
+                cleanup errors separate from the primary verification failure.
+              </p>
+              <pre class="article-code"><code>on_error() {
+  rc=$?
+  line=${BASH_LINENO[0]:-unknown}
+  printf 'command failed: rc=%s line=%s\n' "$rc" "$line" &gt;&amp;2
+  return "$rc"
+}
+trap on_error ERR</code></pre>
+            </section>
+
+            <section id="ci">
+              <h2>Audit GitHub Actions <span class="inline-code">continue-on-error</span></h2>
+              <p>
+                GitHub Actions can deliberately allow a failed step or job to
+                continue. For a step with
+                <span class="inline-code">continue-on-error: true</span>, the
+                original <span class="inline-code">outcome</span> can be
+                <span class="inline-code">failure</span> while its final
+                <span class="inline-code">conclusion</span> is
+                <span class="inline-code">success</span>. That may be correct for
+                an experimental matrix entry, but it must not authorize accepting
+                an agent's patch.
+              </p>
+              <pre class="article-code"><code>- name: Verify agent patch
+  id: verify_agent
+  continue-on-error: true
+  shell: bash
+  run: |
+    set -Eeuo pipefail
+    ./scripts/verify-agent-patch.sh 2&gt;&amp;1 | tee verify.log
+
+- name: Upload verification log
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: agent-verification
+    path: verify.log
+
+- name: Enforce verification result
+  if: always()
+  shell: bash
+  env:
+    VERIFY_OUTCOME: ${{ steps.verify_agent.outcome }}
+  run: |
+    if [[ "$VERIFY_OUTCOME" != success ]]; then
+      printf 'Agent verification outcome: %s\n' "$VERIFY_OUTCOME" &gt;&amp;2
+      exit 1
+    fi</code></pre>
+              <p>
+                Search the workflow and reusable actions for
+                <span class="inline-code">continue-on-error</span>,
+                <span class="inline-code">|| true</span>, unconditional success
+                markers, and verification steps guarded by conditions that can
+                skip them. Also inspect matrix
+                <span class="inline-code">fail-fast</span> settings: they control
+                cancellation behavior, not whether a failed experimental job is
+                acceptable evidence for the required job.
+              </p>
+            </section>
+
+            <section id="checklist">
+              <h2>Verification checklist before accepting agent output</h2>
+              <ol>
+                <li>Read the task, acceptance criteria, allowed files, and claimed verification commands.</li>
+                <li>Inspect <span class="inline-code">git status --short</span> and the complete diff, including generated and untracked files.</li>
+                <li>Run the smallest focused check yourself from a known directory and clean enough state.</li>
+                <li>Confirm the invoked shell matches the script: Bash features require Bash.</li>
+                <li>Audit pipelines for <span class="inline-code">pipefail</span> or immediate <span class="inline-code">PIPESTATUS</span> capture.</li>
+                <li>Audit traps and wrappers for preserved nonzero exit codes.</li>
+                <li>Search CI for downgraded failures, skipped gates, and unconditional success output.</li>
+                <li>Run the broader suite needed to catch interactions outside the focused change.</li>
+                <li>Review behavior and assertions; exit zero proves execution, not test quality.</li>
+                <li>Accept only when the patch, commands, statuses, and CI policy all support the same conclusion.</li>
+              </ol>
+              <pre class="article-code"><code>git status --short
+git diff --check
+git diff --stat
+git diff
+
+rg -n 'continue-on-error|\|\| true|set \+e|trap .*EXIT' \
+  .github scripts package.json
+
+bash -n scripts/*.sh
+./scripts/verify-agent-patch.sh
+printf 'independent verification exit=%s\n' "$?"</code></pre>
+              <p>
+                Keep the raw command, environment-relevant version information,
+                exit status, and log artifact together. Do not accept a pasted
+                excerpt that omits the start of the command or the final status.
+                If a check fails, classify the failure before retrying: product
+                defect, flaky test, environment mismatch, missing credential, or
+                broken verifier. Changing the verifier merely to obtain green is
+                not a fix.
+              </p>
+              <p>
+                The safest mindset is adversarial but fair. Assume the agent may
+                have made an honest verification mistake, and make success
+                mechanically difficult to misreport. A trustworthy green result
+                is one you can reproduce without relying on the agent's summary.
+              </p>
+            </section>
+
+            <section id="test-verifier">
+              <h2>Test the verifier with a known failure</h2>
+              <p>
+                A verification script needs its own negative control. Run a tiny
+                command that is guaranteed to fail through the same logging,
+                trap, wrapper, and CI path used by real tests. The outer process
+                must finish nonzero, the log must remain available, and any final
+                receipt must record the same failure. This catches silent-green
+                wiring before it evaluates an agent patch.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -Eeuo pipefail
+
+run_logged() {
+  local log=$1
+  shift
+  "$@" 2&gt;&amp;1 | tee "$log"
+}
+
+set +e
+run_logged artifacts/negative-control.log \
+  bash -c 'printf "EXPECTED_FAILURE\n"; exit 42'
+rc=$?
+set -e
+
+if [[ "$rc" -ne 42 ]]; then
+  printf 'verifier corrupted exit status: got %s\n' "$rc" &gt;&amp;2
+  exit 70
+fi
+rg -q '^EXPECTED_FAILURE$' artifacts/negative-control.log
+printf 'negative control preserved exit 42\n'</code></pre>
+              <p>
+                Notice that the harness does not exit 42 after confirming the
+                control. The known failure is test data; the harness succeeds
+                only when it observes that failure accurately. In production
+                verification, the tested command's nonzero status must instead
+                reject the patch. Keep those two intentions explicit so a helper
+                designed for negative controls is not reused as a permissive
+                production wrapper.
+              </p>
+              <p>
+                Also test interruption. Conventional shell statuses above 128
+                often indicate termination by a signal, but do not infer the
+                cause from the number alone. Preserve runner logs and cancellation
+                metadata. A timeout, operator cancellation, out-of-memory kill,
+                and deliberate termination all mean verification was not
+                completed; none should be converted into a pass merely because
+                the product assertions did not print a failure.
+              </p>
+              <p>
+                Finally, run the verifier against an unchanged known-good commit
+                and a deliberately broken fixture. Those controls establish both
+                directions: it can accept a valid baseline and reject an invalid
+                one. If either control disagrees, fix the verification surface
+                before asking another agent to modify product code.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://www.gnu.org/software/bash/manual/html_node/Pipelines.html">
+                    GNU Bash manual: Pipelines
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.gnu.org/software/bash/manual/bash.html">
+                    GNU Bash reference manual
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#steps-context">
+                    GitHub Actions documentation: steps context
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idstepscontinue-on-error">
+                    GitHub Actions documentation: continue-on-error
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resources</p>
+            <h2 id="resources-title">Review agent output adversarially</h2>
+            <p>
+              Use the free prompt repository for repeatable review passes, or
+              get the complete pack for deeper failure-oriented verification.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a
+              class="action action-primary"
+              href="https://github.com/soul-sol/ai-code-review-prompts"
+            >
+              Get the free review prompts
+            </a>
+            <a
+              class="action action-primary"
+              href="https://lifestep1.gumroad.com/l/adversarial-review-prompt-pack"
+            >
+              Get the adversarial review pack
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
