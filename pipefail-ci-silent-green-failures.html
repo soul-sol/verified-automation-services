@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static troubleshooting guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Why CI stays green when tests fail: how pipes like | tail hide exit codes, how set -euo pipefail, PIPESTATUS, EXIT traps, and continue-on-error interact, and a checklist for verifying a passing run."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="CI passes but tests failed: the pipefail exit code trap">
+    <meta
+      property="og:description"
+      content="How | tail hides failing tests, and how to use pipefail, PIPESTATUS, traps, and continue-on-error correctly."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/pipefail-ci-silent-green-failures.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/pipefail-ci-silent-green-failures.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>CI passes but tests failed: the pipefail exit code trap</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "CI passes but tests failed: the pipefail exit code trap",
+        "description": "Why CI stays green when tests fail: how pipes like | tail hide exit codes, how set -euo pipefail, PIPESTATUS, EXIT traps, and continue-on-error interact, and a checklist for verifying a passing run.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/pipefail-ci-silent-green-failures.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#how-pipes-hide">Masking</a>
+          <a class="nav-link" href="#fixes">Fixes</a>
+          <a class="nav-link" href="#checklist">Checklist</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="adversarial-review-prompt-pack.html"
+          >
+            Review pack, USD 7
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">CI reliability troubleshooting guide</p>
+            <h1>CI passes but tests failed: the pipefail exit code trap</h1>
+            <p class="article-dek">
+              A green checkmark only reports the exit code your script handed
+              to the runner. Pipes, EXIT traps, and continue-on-error can all
+              quietly replace a failing test exit code with zero.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>11 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#how-pipes-hide">How pipes hide failed tests</a></li>
+              <li><a href="#fixes">Fix scripts with set -euo pipefail</a></li>
+              <li><a href="#pipestatus">Use PIPESTATUS when you need the pipe</a></li>
+              <li><a href="#exit-traps">Traps that overwrite exit codes</a></li>
+              <li><a href="#workflow-masking">continue-on-error masking</a></li>
+              <li><a href="#checklist">Checklist before trusting green CI</a></li>
+              <li><a href="#faq">Common questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                In POSIX shells, the exit status of a pipeline is the exit
+                status of the <em>last</em> command. In
+                <span class="inline-code">./run-tests.sh | tail -n 20</span>,
+                the test runner can exit 1 while
+                <span class="inline-code">tail</span> exits 0, so the pipeline
+                reports success and CI stays green. Adding
+                <span class="inline-code">set -e</span> does not help, because
+                errexit explicitly exempts every pipeline element except the
+                last.
+              </p>
+              <p>
+                The standard fixes are
+                <span class="inline-code">set -euo pipefail</span> at the top
+                of the script, capturing
+                <span class="inline-code">$&#123;PIPESTATUS[0]&#125;</span>
+                when a pipe cannot be avoided, keeping
+                <span class="inline-code">exit 0</span> out of EXIT traps, and
+                never putting
+                <span class="inline-code">continue-on-error</span> on a
+                verification step without a follow-up gate that checks its
+                outcome.
+              </p>
+            </section>
+
+            <section id="how-pipes-hide">
+              <h2>How pipes hide failed tests</h2>
+              <p>
+                The masking happens inside the shell, before the CI runner
+                sees anything. The runner only receives one number: the exit
+                code of the whole step. A command like the one below is the
+                classic trap:
+              </p>
+              <pre class="article-code"><code>./run-tests.sh | tail -n 20
+
+# The runner exits 1. tail still succeeds.
+# The pipeline's exit code is tail's: 0.
+# The CI step is reported as successful.</code></pre>
+              <p>
+                This is not a bug in <span class="inline-code">tail</span>. It
+                is the POSIX rule for pipelines: the status is taken from the
+                final command. The same applies to
+                <span class="inline-code">tee</span>,
+                <span class="inline-code">grep</span> used as a log filter, and
+                any formatter or pretty-printer sitting at the end of a pipe.
+                The failure is visible in the log text but invisible in the
+                exit code, and the exit code is the only thing most CI systems
+                react to.
+              </p>
+              <p>
+                GitHub Actions adds a second, quieter variant. On Linux and
+                macOS runners, a <span class="inline-code">run:</span> step
+                with no <span class="inline-code">shell:</span> key executes
+                with <span class="inline-code">bash -e {0}</span>: errexit on,
+                but no pipefail. Declaring
+                <span class="inline-code">shell: bash</span> explicitly
+                executes <span class="inline-code">bash --noprofile --norc
+                -eo pipefail {0}</span> instead. Two identical-looking steps
+                can therefore behave differently, and the safer one is the
+                explicit declaration.
+              </p>
+
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Where a failing exit code gets replaced by zero</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Pattern</th>
+                      <th scope="col">What happens</th>
+                      <th scope="col">Fix</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="inline-code">cmd | tail</span></td>
+                      <td>Pipeline returns tail's 0</td>
+                      <td><span class="inline-code">pipefail</span> or PIPESTATUS</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">cmd || true</span></td>
+                      <td>Failure replaced by 0</td>
+                      <td>Remove, or gate the error deliberately</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">trap '...; exit 0' EXIT</span></td>
+                      <td>Real code overwritten at exit</td>
+                      <td>Capture <span class="inline-code">$?</span> first</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">continue-on-error: true</span></td>
+                      <td>Step failure, job still green</td>
+                      <td>Check <span class="inline-code">outcome</span> later</td>
+                    </tr>
+                    <tr>
+                      <td>Default <span class="inline-code">run:</span> shell</td>
+                      <td><span class="inline-code">bash -e</span> without pipefail</td>
+                      <td>Declare <span class="inline-code">shell: bash</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="fixes">
+              <h2>Fix scripts with set -euo pipefail</h2>
+              <p>
+                Put this line at the top of every script that verifies
+                anything, including CI steps:
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -euo pipefail</code></pre>
+              <p>
+                Each part does one job. <span class="inline-code">-e</span>
+                (errexit) terminates the script when a command fails.
+                <span class="inline-code">-u</span> (nounset) treats a
+                reference to an unset variable as an error, so a typo like
+                <span class="inline-code">$EXIT_CODE</span> cannot silently
+                expand to nothing. <span class="inline-code">-o pipefail</span>
+                changes the pipeline rule: the pipeline returns the rightmost
+                non-zero exit status of its commands, or zero only if every
+                command exited zero. With pipefail active,
+                <span class="inline-code">./run-tests.sh | tail -n 20</span>
+                fails when the runner fails.
+              </p>
+              <p>
+                Know the limits of errexit. The bash manual exempts failures
+                in several positions: commands tested by
+                <span class="inline-code">if</span> or
+                <span class="inline-code">while</span>, commands in a
+                <span class="inline-code">&amp;&amp;</span> or
+                <span class="inline-code">||</span> list other than the last,
+                and every pipeline member except the final one.
+                <span class="inline-code">set -e</span> alone is a weak gate;
+                treat <span class="inline-code">pipefail</span> as a required
+                companion, not an optional one.
+              </p>
+              <p>
+                Portability matters here. <span class="inline-code">pipefail</span>
+                exists in bash, ksh, and zsh, but minimal
+                <span class="inline-code">/bin/sh</span> implementations such
+                as dash have historically not implemented it, and POSIX
+                standardized it only in the 2024 revision. Under dash,
+                <span class="inline-code">set -o pipefail</span> prints an
+                illegal-option error and returns non-zero, and a script
+                without errexit keeps running with no pipe protection at all.
+                If your script must run under <span class="inline-code">sh</span>,
+                avoid pipes around verification commands rather than relying
+                on the option.
+              </p>
+              <p>
+                Also be honest about the reverse problem: pipefail can turn a
+                working pipeline into a failing one. When the final command
+                exits early, the upstream producer is killed with SIGPIPE,
+                which shows up as exit status 141. A producer like
+                <span class="inline-code">yes</span> feeding
+                <span class="inline-code">head -n 1</span> fails under
+                pipefail for exactly this reason. That is usually the desired
+                strictness for test pipelines, but if a legitimate
+                log-producing process is routinely cut off mid-write, scope
+                the decision explicitly instead of shipping a mystery red.
+              </p>
+            </section>
+
+            <section id="pipestatus">
+              <h2>Use PIPESTATUS when you need the pipe</h2>
+              <p>
+                Some pipes are load-bearing: you want the full log captured to
+                a file and the runner's own exit code checked. Bash exposes
+                pipeline exit codes in the array variable
+                <span class="inline-code">PIPESTATUS</span>, indexed from
+                zero:
+              </p>
+              <pre class="article-code"><code>./run-tests.sh 2&gt;&amp;1 | tee test-output.log
+rc="$&#123;PIPESTATUS[0]&#125;"
+if [ "$rc" -ne 0 ]; then
+  echo "test runner failed with exit code $rc" &gt;&amp;2
+  exit "$rc"
+fi</code></pre>
+              <p>
+                Two details decide whether this works.
+                <span class="inline-code">PIPESTATUS</span> is overwritten by
+                the next command the shell executes, even a successful
+                <span class="inline-code">echo</span>, so read it on the line
+                immediately after the pipeline or capture it into a variable
+                in one step, as above. And it is a bash feature: zsh spells it
+                lowercase, <span class="inline-code">$pipestatus</span>, and
+                indexes arrays from one. A script that mixes the two will
+                silently test the wrong value.
+              </p>
+            </section>
+
+            <section id="exit-traps">
+              <h2>Traps that overwrite exit codes</h2>
+              <p>
+                An EXIT trap runs when the script exits, whatever the reason.
+                That makes it the right place for cleanup and the wrong place
+                for an unconditional <span class="inline-code">exit 0</span>,
+                which converts any failure into success right before the CI
+                runner takes the number:
+              </p>
+              <pre class="article-code"><code># Fails green: the trap erases the test failure
+trap 'docker rm -f test-container; exit 0' EXIT
+./run-tests.sh   # exits 1, then the trap exits 0 for it</code></pre>
+              <p>
+                The robust pattern captures the pending status as the first
+                statement of the trap and re-exits with it after cleanup. A
+                cleanup command that fails near the end of a trap can also
+                change the status the shell ultimately reports, so end the
+                trap with an explicit, captured exit:
+              </p>
+              <pre class="article-code"><code>cleanup() {
+  docker rm -f test-container || true   # cleanup may fail; must not mask
+}
+
+trap 'rc=$?; cleanup; exit "$rc"' EXIT</code></pre>
+              <p>
+                Note the ordering: <span class="inline-code">rc=$?</span>
+                before anything else runs, then cleanup, then
+                <span class="inline-code">exit "$rc"</span>. The same review
+                applies to wrappers around agent or worker processes: if a
+                supervisor script ends with a heartbeat or summary command
+                after the worker failed, the worker's exit code is gone.
+              </p>
+            </section>
+
+            <section id="workflow-masking">
+              <h2>continue-on-error and workflow-level masking</h2>
+              <p>
+                The pipeline can be perfectly correct and the workflow can
+                still swallow the result. GitHub Actions offers several
+                legitimate ways to decouple step failure from job failure,
+                and each one will silently green a broken test step:
+              </p>
+              <pre class="article-code"><code>- name: Run tests
+  run: ./scripts/run-tests.sh || true   # shell-level mask
+
+- name: Run tests
+  continue-on-error: true               # workflow-level mask
+  run: ./scripts/run-tests.sh</code></pre>
+              <p>
+                Step-level <span class="inline-code">continue-on-error</span>
+                records an error annotation but reports the step, and the job,
+                as successful. Job-level
+                <span class="inline-code">continue-on-error</span> does the
+                same for an entire job, which is why it is usually reserved
+                for experimental matrices. Shell masks like
+                <span class="inline-code">|| true</span>,
+                <span class="inline-code">|| exit 0</span>, and
+                <span class="inline-code">set +e</span> behave similarly.
+              </p>
+              <p>
+                When you genuinely need a step to continue, for example to
+                upload diagnostics from a failed run, make the failure
+                decisive in a later gate. The
+                <span class="inline-code">steps</span> context distinguishes
+                the two facts: <span class="inline-code">outcome</span> is the
+                result before <span class="inline-code">continue-on-error</span>
+                is applied, while <span class="inline-code">conclusion</span>
+                is the result after. Gate on outcome:
+              </p>
+              <pre class="article-code"><code>- name: Run tests
+  id: tests
+  continue-on-error: true
+  run: ./scripts/run-tests.sh
+
+- name: Fail the job if tests failed
+  if: always()
+  run: |
+    if [ "$&#123;&#123; steps.tests.outcome &#125;&#125;" != "success" ]; then
+      echo "test step outcome: $&#123;&#123; steps.tests.outcome &#125;&#125;" &gt;&amp;2
+      exit 1
+    fi</code></pre>
+              <p>
+                Keep <span class="inline-code">continue-on-error</span> and
+                <span class="inline-code">if: always()</span> on upload and
+                reporting steps, never on the verification step itself, unless
+                a gate like the one above exists.
+              </p>
+            </section>
+
+            <section id="checklist">
+              <h2>Checklist before trusting green CI</h2>
+              <ol>
+                <li>
+                  Run a canary failure. Temporarily add
+                  <span class="inline-code">exit 1</span> or invert one
+                  assertion, push, and confirm CI goes red. If it stays
+                  green, the pipeline is masking something; find it before
+                  shipping. Remove the canary afterward.
+                </li>
+                <li>
+                  Read the runner's own summary line, not the step status.
+                  Confirm the number of tests that ran matches expectation.
+                  An empty run is the second classic false green: pytest
+                  exits with code 5 when no tests were collected, and tools
+                  like Jest have an explicit
+                  <span class="inline-code">--passWithNoTests</span> flag that
+                  turns an empty run into success. A wrong path or glob can
+                  collect nothing and look healthy.
+                </li>
+                <li>
+                  Grep the raw log for the runner's failure markers, such as
+                  <span class="inline-code">FAILED</span> or a failure count,
+                  because collapsed CI logs hide mid-run errors that did not
+                  change the exit code.
+                </li>
+                <li>
+                  Check every <span class="inline-code">run:</span> step that
+                  matters: explicit <span class="inline-code">shell: bash</span>,
+                  and <span class="inline-code">set -euo pipefail</span> at
+                  the top of any script it calls.
+                </li>
+                <li>
+                  Search the repository for
+                  <span class="inline-code">|| true</span>,
+                  <span class="inline-code">|| exit 0</span>,
+                  <span class="inline-code">set +e</span>, and
+                  <span class="inline-code">continue-on-error</span>. Each
+                  occurrence must have a stated reason or be removed.
+                </li>
+                <li>
+                  Inspect every EXIT trap for a bare
+                  <span class="inline-code">exit 0</span>. The trap must
+                  capture <span class="inline-code">$?</span> first and re-exit
+                  with it.
+                </li>
+                <li>
+                  Where a pipe must stay, verify the producer with
+                  <span class="inline-code">$&#123;PIPESTATUS[0]&#125;</span>
+                  on the immediately following line.
+                </li>
+              </ol>
+              <aside class="article-callout" aria-labelledby="review-config-title">
+                <h3 id="review-config-title">Review the pipeline, not just the code</h3>
+                <p>
+                  The same masking patterns defeat review of AI-written or
+                  outsourced work: an agent reports success, and nothing in
+                  the pipeline re-checks the exit code. Point an adversarial
+                  review pass at your CI scripts and workflow files as
+                  deliverables in their own right.
+                </p>
+              </aside>
+            </section>
+
+            <section id="faq">
+              <h2>Common questions</h2>
+
+              <h3>Does set -e make pipelines fail when a command fails?</h3>
+              <p>
+                No. Errexit exempts every pipeline member except the last, so
+                <span class="inline-code">set -e</span> with
+                <span class="inline-code">failing | tail</span> continues
+                normally. You need
+                <span class="inline-code">set -o pipefail</span> in addition.
+              </p>
+
+              <h3>Why does a script behave differently in CI than locally?</h3>
+              <p>
+                The invocation differs. A GitHub Actions
+                <span class="inline-code">run:</span> step without a shell key
+                uses <span class="inline-code">bash -e</span>, while an
+                explicit <span class="inline-code">shell: bash</span> adds
+                <span class="inline-code">-o pipefail</span>. Your local
+                terminal may have neither, and a different shebang may point
+                at a shell without pipefail support. Compare the exact shell
+                and options, not just the commands.
+              </p>
+
+              <h3>Is pipefail portable?</h3>
+              <p>
+                It is available in bash, ksh, and zsh, and POSIX added it in
+                the 2024 revision, but implementations lag. Dash, the default
+                <span class="inline-code">/bin/sh</span> on Debian and Ubuntu,
+                has historically rejected it with an illegal-option error. If
+                the script may run under <span class="inline-code">sh</span>,
+                do not route verification commands through pipes.
+              </p>
+
+              <h3>Can pipefail cause false failures?</h3>
+              <p>
+                Yes. When the last command in a pipeline exits early, upstream
+                processes receive SIGPIPE, which is exit status 141, and
+                pipefail reports the pipeline as failed. For test runs that is
+                usually the strictness you want; for long-lived producers
+                feeding a short consumer, handle the signal or restructure
+                the pipeline.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://www.gnu.org/software/bash/manual/">
+                    GNU Bash Reference Manual: pipelines, the set builtin,
+                    and PIPESTATUS
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions">
+                    GitHub Docs: Workflow syntax for GitHub Actions,
+                    continue-on-error and shells
+                  </a>
+                </li>
+                <li>
+                  <a href="https://pubs.opengroup.org/onlinepubs/9799919799/">
+                    POSIX.1-2024: Shell Command Language
+                  </a>
+                </li>
+                <li>
+                  <a href="https://docs.pytest.org/en/stable/reference/reference.html">
+                    pytest documentation: exit codes
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" id="resource-box">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resource</p>
+            <h2>Check CI and agent output adversarially</h2>
+            <p>
+              The free
+              <a href="https://github.com/soul-sol/ai-code-review-prompts">
+                ai-code-review-prompts
+              </a>
+              repository on GitHub provides reusable review prompts you can
+              point at CI scripts, workflow files, and agent reports. The
+              complete Adversarial Review Prompt Pack (USD 7) adds 25 prompts
+              as .md files and a 55-page PDF guide for deeper
+              failure-oriented verification.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a
+              class="action action-primary"
+              href="https://github.com/soul-sol/ai-code-review-prompts"
+            >
+              Get the free review prompts
+            </a>
+            <a
+              class="action action-primary"
+              href="https://lifestep1.gumroad.com/l/adversarial-review-prompt-pack"
+            >
+              Get the adversarial review pack
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -27,6 +27,9 @@
     <loc>https://soul-sol.github.io/verified-automation-services/claude-code-weekly-limit-strategies.html</loc>
   </url>
   <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/claude-code-weekly-limit-save-quota.html</loc>
+  </url>
+  <url>
     <loc>https://soul-sol.github.io/verified-automation-services/claude-code-stuck-not-responding-fix.html</loc>
   </url>
   <url>
@@ -37,6 +40,9 @@
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/codex-agents-md-loading-troubleshooting.html</loc>
+  </url>
+  <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/codex-cli-non-interactive-automation.html</loc>
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/developer-reliability-bundle.html</loc>
@@ -63,6 +69,9 @@
     <loc>https://soul-sol.github.io/verified-automation-services/how-to-run-codex-exec-in-parallel-background-workers.html</loc>
   </url>
   <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/how-to-review-ai-generated-code.html</loc>
+  </url>
+  <url>
     <loc>https://soul-sol.github.io/verified-automation-services/run-multiple-ai-coding-agents-parallel.html</loc>
   </url>
   <url>
@@ -76,6 +85,9 @@
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/verifying-ai-agent-work-exit-codes.html</loc>
+  </url>
+  <url>
+    <loc>https://soul-sol.github.io/verified-automation-services/pipefail-ci-silent-green-failures.html</loc>
   </url>
   <url>
     <loc>https://soul-sol.github.io/verified-automation-services/en/index.html</loc>

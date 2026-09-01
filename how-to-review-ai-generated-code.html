@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static code-review guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="How to review AI generated code with an adversarial workflow, reproducible findings, eight common failure families, rejection criteria, and a second-model review."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How to review AI generated code">
+    <meta
+      property="og:description"
+      content="An adversarial workflow for reviewing plausible AI diffs before they reach production."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/how-to-review-ai-generated-code.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/how-to-review-ai-generated-code.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>How to review AI generated code</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "How to review AI generated code",
+        "description": "How to review AI generated code with an adversarial workflow, reproducible findings, eight common failure families, rejection criteria, and a second-model review.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/how-to-review-ai-generated-code.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#workflow">Workflow</a>
+          <a class="nav-link" href="#failure-families">Failure families</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#resource"
+          >
+            Review prompts
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Adversarial code review guide</p>
+            <h1>How to review AI generated code</h1>
+            <p class="article-dek">
+              Treat an AI patch as an untrusted implementation claim: define the
+              contract, attack its boundaries, reproduce each finding, and accept
+              only the behavior you can verify.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>13 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#workflow">Adversarial workflow</a></li>
+              <li><a href="#finding-format">Finding format</a></li>
+              <li><a href="#failure-families">Eight failure families</a></li>
+              <li><a href="#reject">Rejecting a whole diff</a></li>
+              <li><a href="#second-opinion">Second-model review</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Review AI-generated code from the outside in. First write the
+                requested behavior, its forbidden behavior, and the files that
+                should need to change. Then read the diff, run the narrowest
+                relevant checks, and deliberately make each important boundary
+                fail. A clean-looking implementation or a green test suite is
+                evidence only when the tests can detect the bug you are worried
+                about.
+              </p>
+              <p>
+                AI-generated diffs do not fail because the syntax is uniquely
+                bad. They fail differently because a generator can produce a
+                coherent local story without having the repository's unstated
+                contracts: deployment order, real callers, permissions, failure
+                semantics, operational limits, and the reason an old workaround
+                exists. Review the patch as a proposed change to those contracts,
+                not as a paragraph that needs proofreading.
+              </p>
+            </section>
+
+            <section id="workflow">
+              <h2>An adversarial review workflow</h2>
+              <h3>1. Freeze the contract before trusting the implementation</h3>
+              <p>
+                Translate the request into observable outcomes: inputs, outputs,
+                authorization, error behavior, data changes, and rollback. State
+                the smallest allowed file set. This makes a useful question out
+                of every extra line: which acceptance condition requires it?
+              </p>
+              <pre class="article-code"><code># Start with the boundary, not the generated explanation.
+git diff --name-status origin/main...HEAD
+git diff --check
+git diff -- src/routes/orders.ts test/orders.test.ts
+
+# Search for callers and old behavior before accepting a replacement.
+rg -n "createOrder|legacyCreateOrder|ORDER_TIMEOUT" src test docs config</code></pre>
+              <h3>2. Trace values across boundaries</h3>
+              <p>
+                Follow every new or changed value from source to sink. Inputs may
+                come from HTTP, queues, environment variables, files, databases,
+                or another service. Sinks include queries, shell commands, paths,
+                templates, logs, caches, feature flags, and migrations. At each
+                boundary ask what validation, encoding, timeout, ownership, and
+                error translation the system expects.
+              </p>
+              <h3>3. Try to disprove the happy path</h3>
+              <p>
+                Use a small counterexample instead of a vague request for more
+                tests: remove the optional field, make the dependency return 503,
+                send a duplicate event, deny the caller, hold a database lock, or
+                run the documented command from a clean checkout. The goal is not
+                to create random failures. It is to test the exact assumption the
+                diff makes at a system boundary.
+              </p>
+              <h3>4. Re-read the final diff after verification</h3>
+              <p>
+                Generated patches frequently include an unnecessary helper,
+                dependency bump, formatting sweep, or changed default alongside
+                the requested work. Re-open the final diff after tools run; do
+                not let a successful command erase the question of whether the
+                change is minimal and reviewable.
+              </p>
+            </section>
+
+            <section id="finding-format">
+              <h2>Write findings so another engineer can reproduce them</h2>
+              <p>
+                A review comment should contain a falsifiable claim, not a
+                prediction that “this may be unsafe.” Use the compact
+                <span class="inline-code">SEVERITY / LOCATION / FAILURE / REPRO</span>
+                format. It forces the reviewer to name the impact, exact code,
+                broken contract, and minimum proof.
+              </p>
+              <pre class="article-code"><code>SEVERITY: High — authenticated users can read another tenant's order.
+LOCATION: src/routes/orders.ts:48, GET /orders/:id
+FAILURE: The lookup filters by id but not accountId from the session.
+REPRO: Create an order in account B; call the route as account A with B's id;
+       the response returns 200 and B's order.</code></pre>
+              <p>
+                Severity describes the consequence if the reproduction succeeds,
+                not how much you dislike the code. Location should survive a
+                small rebase: include a symbol, route, migration, or command as
+                well as a line when possible. Failure names the violated contract.
+                Repro gives deterministic setup, action, and expected versus actual
+                result. If you cannot supply a repro, label the concern as a
+                question or investigation rather than presenting it as a defect.
+              </p>
+            </section>
+
+            <section id="failure-families">
+              <h2>Eight failure families to test</h2>
+
+              <h3>1. Happy-path-only validation</h3>
+              <p>
+                A generated handler often validates that a field exists but not
+                that it belongs to the caller or has the required state.
+              </p>
+              <pre class="article-code"><code>// Incorrect: the id exists, but may belong to another account.
+const order = await db.order.findUnique({ where: { id: req.params.id } });
+
+// Review target: scope the lookup to the authenticated account as well.</code></pre>
+
+              <h3>2. Tests that cannot fail meaningfully</h3>
+              <p>
+                Test names can sound precise while assertions accept the broken
+                behavior. Make the test fail by mutating the implementation.
+              </p>
+              <pre class="article-code"><code>// Too broad: 200, 401, and 404 all pass.
+expect(response.status).toBeLessThan(500);
+
+// Contract-level assertion:
+expect(response.status).toBe(401);</code></pre>
+
+              <h3>3. Error swallowing</h3>
+              <p>
+                A fallback can turn an outage into a valid empty result and hide
+                the signal needed by callers and operators.
+              </p>
+              <pre class="article-code"><code>try {
+  return await inventory.get(sku);
+} catch {
+  return { available: false }; // outage now looks like a stock decision
+}</code></pre>
+
+              <h3>4. Injection through a newly convenient interpreter</h3>
+              <p>
+                Concatenating an input into a command, query, path, or template
+                adds an interpreter boundary that the happy path does not reveal.
+              </p>
+              <pre class="article-code"><code>// Avoid a shell and validate the expected identifier first.
+execFile("git", ["show", "--", commitId], callback);</code></pre>
+
+              <h3>5. Authorization or tenant-boundary loss</h3>
+              <p>
+                Refactors can move an authorization check after a fetch or drop a
+                scope filter when replacing a repository call.
+              </p>
+              <pre class="article-code"><code>// Risky: fetches any document before checking ownership.
+const document = await documents.findById(id);
+if (document.ownerId !== session.userId) throw forbidden();</code></pre>
+
+              <h3>6. Data and concurrency assumptions</h3>
+              <p>
+                Code that reads, checks, and writes in separate operations can
+                duplicate work when two requests arrive together.
+              </p>
+              <pre class="article-code"><code>if (!(await hasProcessed(event.id))) {
+  await chargeCard(event);      // concurrent workers can both reach this line
+  await markProcessed(event.id);
+}</code></pre>
+
+              <h3>7. Scope creep and dependency drift</h3>
+              <p>
+                A small requested fix can arrive with generated files, package
+                upgrades, renamed helpers, and unrelated formatting. That weakens
+                review even if every individual edit looks reasonable.
+              </p>
+              <pre class="article-code"><code>git diff --stat origin/main...HEAD
+git diff -- package.json package-lock.json
+git diff --name-only origin/main...HEAD</code></pre>
+
+              <h3>8. Documentation and operational drift</h3>
+              <p>
+                An AI patch may change a flag or environment variable without
+                changing the command a deployer actually copies.
+              </p>
+              <pre class="article-code"><code>rg -n "OLD_TIMEOUT|REQUEST_TIMEOUT_SECONDS" README.md docs examples src test
+node ./bin/service.js --help &gt; /tmp/current-help.txt
+diff -u docs/cli-help.txt /tmp/current-help.txt</code></pre>
+              <p>
+                These are families, not a replacement for domain knowledge. Add
+                domain-specific attacks for money movement, privacy, retention,
+                correctness proofs, hardware, and regulated workflows. The right
+                review test is the smallest one that could invalidate the patch's
+                central claim.
+              </p>
+            </section>
+
+            <section id="reject">
+              <h2>When to reject the whole diff</h2>
+              <p>
+                Reject rather than line-edit when the patch has no stable
+                contract, changes too many unrelated surfaces to establish intent,
+                or cannot be tested safely in the available environment. Also
+                reject when it introduces a security or data-integrity risk with
+                no credible mitigation, changes generated or lock files without a
+                necessary source change, or depends on an unexplained framework
+                behavior. A patch that passes today but cannot be understood or
+                rolled back by the team is not ready merely because it compiles.
+              </p>
+              <p>
+                A whole-diff rejection is not a verdict on the author or model.
+                It is a request for a smaller, independently reviewable change:
+                restate the acceptance test, isolate the required files, add a
+                negative test, and show the precise verification command. If the
+                model cannot explain the boundary in code and evidence, start
+                again from the contract rather than accumulating repairs.
+              </p>
+            </section>
+
+            <section id="second-opinion">
+              <h2>Use a two-model second opinion without outsourcing judgment</h2>
+              <p>
+                A second model is useful when it has a different task and sees
+                the evidence, not when it is asked whether the first model is
+                “correct.” Give reviewer two the request, changed-file list, diff,
+                relevant interfaces, and the tests already run. Ask it to produce
+                only reproducible findings in the same four-part format, then
+                independently run the strongest reproductions yourself.
+              </p>
+              <pre class="article-code"><code>Review this diff adversarially. Do not summarize it.
+For each finding, return only:
+SEVERITY / LOCATION / FAILURE / REPRO.
+Prioritize authorization, data loss, concurrency, error semantics,
+untrusted input, and tests that would pass if the implementation were broken.
+If there is no reproducible finding, say so and list the highest-risk
+assumptions that still need a human or integration test.</code></pre>
+              <p>
+                Keep the models independent: do not feed the first model's
+                conclusion to the second before it reviews the diff. Agreement is
+                not proof, and disagreement is not a tie-breaker. It is a way to
+                generate focused hypotheses. The accountable reviewer still
+                decides whether the contract is met and whether the evidence is
+                strong enough to ship.
+              </p>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" id="resource" aria-labelledby="resources-title">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Resource</p>
+            <h2 id="resources-title">Turn review concerns into reproducible checks</h2>
+            <p>
+              The Adversarial Review Prompt Pack provides focused, evidence-seeking
+              prompts. Start with the free prompt collection, then review the paid
+              pack only if its scope fits your review process.
+            </p>
+          </div>
+          <p>
+            <a class="action action-primary" href="https://lifestep1.gumroad.com/l/adversarial-review-prompt-pack">View the prompt pack</a>
+            <a class="text-link" href="https://github.com/soul-sol/ai-code-review-prompts">Free prompts on GitHub</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>

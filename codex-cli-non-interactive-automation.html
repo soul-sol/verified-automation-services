@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static automation guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Run codex exec non-interactively in scripts and CI with explicit models, reasoning effort, sandboxes, output capture, exit codes, background jobs, and stall-resistant task specs."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Codex exec non-interactive / automate Codex CLI">
+    <meta
+      property="og:description"
+      content="A practical guide to headless Codex CLI runs with reliable output, exit codes, sandboxing, background execution, and bounded task specs."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/codex-cli-non-interactive-automation.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/codex-cli-non-interactive-automation.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Codex exec non-interactive / automate Codex CLI</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Codex exec non-interactive / automate Codex CLI",
+        "description": "Run codex exec non-interactively in scripts and CI with explicit models, reasoning effort, sandboxes, output capture, exit codes, background jobs, and stall-resistant task specs.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/codex-cli-non-interactive-automation.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#run">Run</a>
+          <a class="nav-link" href="#pitfalls">Pitfalls</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="#resources"
+          >
+            Resources
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Codex CLI automation guide</p>
+            <h1>Codex exec non-interactive / automate Codex CLI</h1>
+            <p class="article-dek">
+              Use <span class="inline-code">codex exec</span> for headless runs,
+              make permissions explicit, separate the final answer from progress
+              logs, preserve the real exit code, and give the agent a bounded task
+              specification that can finish without a conversation.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>12 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#run">Run Codex headlessly</a></li>
+              <li><a href="#capture">Capture output and status</a></li>
+              <li><a href="#background">Run in the background</a></li>
+              <li><a href="#pitfalls">Avoid automation pitfalls</a></li>
+              <li><a href="#task-spec">Write a task spec that finishes</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                <span class="inline-code">codex exec</span> is the Codex CLI
+                entry point for non-interactive scripts and CI. Supply the prompt
+                as an argument or through standard input, set the workspace with
+                <span class="inline-code">-C</span>, and choose the least-powerful
+                sandbox that can complete the task. The command streams progress
+                to standard error and prints the final agent message to standard
+                output, so those streams should be captured separately.
+              </p>
+              <pre class="article-code"><code>codex exec \
+  -C /absolute/path/to/repository \
+  -m YOUR_MODEL_ID \
+  -c model_reasoning_effort=high \
+  -s workspace-write \
+  -o codex-final.txt \
+  "Implement the bounded task in TASK.md, run the named checks, and report evidence." \
+  2&gt;codex-progress.log
+
+status=$?
+printf 'codex exit code: %s\n' "$status"
+exit "$status"</code></pre>
+              <p>
+                Replace the model placeholder with an ID available to your
+                account and CLI version. Model availability changes; do not copy
+                a model name from an old article and assume it is selectable.
+              </p>
+            </section>
+
+            <section id="run">
+              <h2>Run Codex headlessly with explicit flags</h2>
+              <p>
+                Headless does not mean “run the interactive interface without a
+                terminal.” It means invoking the dedicated exec subcommand. There
+                is no prompt box for follow-up questions, so the initial command
+                must contain enough context and a finish condition.
+              </p>
+
+              <h3>Choose the workspace, model, effort, and sandbox</h3>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Core flags for a reproducible non-interactive run</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Flag</th>
+                      <th scope="col">Purpose</th>
+                      <th scope="col">Automation rule</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="inline-code">-C DIR</span></td>
+                      <td>Sets the workspace root before execution</td>
+                      <td>Prefer an absolute, prevalidated path</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">-m MODEL</span></td>
+                      <td>Overrides the configured model for this run</td>
+                      <td>Pin intentionally; verify availability separately</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">-c key=value</span></td>
+                      <td>Overrides one configuration value</td>
+                      <td>Use repeatable, reviewable overrides</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">-s MODE</span></td>
+                      <td>Selects read-only, workspace-write, or danger-full-access</td>
+                      <td>Grant only what the task needs</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">--skip-git-repo-check</span></td>
+                      <td>Allows execution outside a Git repository</td>
+                      <td>Use only when the directory is intentionally non-Git</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                The reasoning override requested in many automation recipes is
+                <span class="inline-code">-c model_reasoning_effort=high</span>.
+                It is a configuration override, not a guarantee that every model
+                supports every effort value. Match the value to the selected
+                model and test the exact command in your environment.
+              </p>
+
+              <h3>Pass a prompt file through stdin</h3>
+              <pre class="article-code"><code>codex exec - \
+  -C "$PROJECT_DIR" \
+  -s workspace-write \
+  &lt; TASK.md \
+  &gt; codex-final.txt \
+  2&gt; codex-progress.log</code></pre>
+              <p>
+                The hyphen explicitly tells Codex to read the entire prompt from
+                stdin. You can also provide a prompt argument while piping data;
+                in that form, the argument remains the instruction and the piped
+                text becomes additional context. Avoid passing secrets or an
+                unfiltered repository dump merely because stdin makes it easy.
+              </p>
+            </section>
+
+            <section id="capture">
+              <h2>Capture output, logs, and exit codes without losing evidence</h2>
+              <p>
+                A reliable wrapper preserves three different signals: the final
+                answer, the progress log, and the process exit status. Standard
+                shell redirection is enough. The <span class="inline-code">-o</span>
+                or <span class="inline-code">--output-last-message</span> flag also
+                writes the final agent message to a file while leaving it on
+                stdout.
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -u
+
+final_file="artifacts/codex-final.md"
+log_file="artifacts/codex-progress.log"
+mkdir -p artifacts
+
+codex exec \
+  -C "$PWD" \
+  -s read-only \
+  -o "$final_file" \
+  "Review the current diff. Do not edit files. List blocking findings with paths." \
+  &gt; artifacts/codex-stdout.txt \
+  2&gt; "$log_file"
+status=$?
+
+if [ "$status" -ne 0 ]; then
+  printf 'Codex failed; inspect %s\n' "$log_file" &gt;&amp;2
+fi
+exit "$status"</code></pre>
+              <p>
+                Do not append <span class="inline-code">|| true</span> to the Codex
+                command unless failure is deliberately non-blocking and recorded
+                elsewhere. That pattern converts a failed agent run into shell
+                success. If a pipeline uses <span class="inline-code">tee</span>,
+                enable <span class="inline-code">set -o pipefail</span> or inspect
+                the pipeline status explicitly; otherwise the last process can
+                hide the Codex exit code.
+              </p>
+              <p>
+                For event-level automation, add <span class="inline-code">--json</span>.
+                Stdout then becomes JSON Lines containing thread, turn, item, and
+                error events. Parse each line independently instead of treating
+                the stream as one JSON document.
+              </p>
+            </section>
+
+            <section id="background">
+              <h2>Background codex exec without confusing “started” with “finished”</h2>
+              <p>
+                An ampersand only proves that the shell launched a process. Keep
+                its PID, wait for it, and write the exit status after completion.
+                A separate status file makes the result inspectable even when the
+                parent terminal disconnects.
+              </p>
+              <pre class="article-code"><code>run_dir="runs/codex-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$run_dir"
+
+(
+  codex exec -C "$PWD" -s workspace-write - &lt; TASK.md \
+    &gt; "$run_dir/final.txt" \
+    2&gt; "$run_dir/progress.log"
+  printf '%s\n' "$?" &gt; "$run_dir/exit-code"
+) &amp;
+
+pid=$!
+printf '%s\n' "$pid" &gt; "$run_dir/pid"
+printf 'started PID %s in %s\n' "$pid" "$run_dir"</code></pre>
+              <p>
+                For a script that must stay attached, call
+                <span class="inline-code">wait "$pid"</span> and propagate that
+                result. For a job that must survive logout, use the process
+                supervisor native to the environment—such as a CI runner,
+                systemd, or a container orchestrator—rather than assuming a bare
+                background job has durable ownership. Add an external timeout and
+                a log freshness check; the CLI cannot prove that your surrounding
+                process manager is healthy.
+              </p>
+            </section>
+
+            <section id="pitfalls">
+              <h2>Avoid sandbox and approval pitfalls in unattended runs</h2>
+              <p>
+                The safe default for non-interactive execution is read-only. A
+                task that must edit files needs
+                <span class="inline-code">-s workspace-write</span>. If the task
+                needs a path outside the workspace, grant a narrowly scoped
+                additional directory where supported instead of opening the
+                whole machine. Network access, credentials, managed policies,
+                and configured tools may still impose separate restrictions.
+              </p>
+              <ul>
+                <li>
+                  Use <span class="inline-code">read-only</span> for audits,
+                  summaries, and plans that require no repository mutation.
+                </li>
+                <li>
+                  Use <span class="inline-code">workspace-write</span> for bounded
+                  edits and tests contained within the selected workspace.
+                </li>
+                <li>
+                  Reserve <span class="inline-code">danger-full-access</span> or
+                  approval bypassing for an externally isolated runner. It is not
+                  a convenience flag for a normal workstation.
+                </li>
+                <li>
+                  Use <span class="inline-code">--skip-git-repo-check</span> only
+                  after verifying the intended directory. The Git check is a
+                  protective boundary, not an arbitrary error to suppress.
+                </li>
+                <li>
+                  Preinstall dependencies and authenticate before the run when
+                  possible. An agent cannot click an approval prompt that does
+                  not exist in headless mode.
+                </li>
+              </ul>
+              <p>
+                Be equally cautious with credentials. Saved CLI authentication
+                may be reused locally, while CI commonly supplies credentials
+                explicitly. Keep secrets scoped to the Codex invocation and do
+                not expose them to untrusted build scripts, dependency hooks, or
+                checked-out code in the same environment.
+              </p>
+
+              <h3>Triage a failed unattended run before retrying</h3>
+              <p>
+                A retry is useful only when something material changes. First
+                read the progress log and classify the failure. An authentication
+                error needs a credential or account fix. A sandbox denial needs a
+                narrower task or an intentional permission change. A missing
+                command needs environment setup. A test failure after an edit
+                needs a different code hypothesis. Repeating the same command
+                without changing its inputs, permissions, environment, or task
+                spec usually spends more time without adding evidence.
+              </p>
+              <pre class="article-code"><code>if [ ! -s artifacts/codex-final.md ]; then
+  printf 'No final message was produced\n' &gt;&amp;2
+fi
+
+if rg -n "permission denied|sandbox|authentication|rate limit" \
+  artifacts/codex-progress.log; then
+  printf 'Classify the blocker before retrying\n' &gt;&amp;2
+fi</code></pre>
+              <p>
+                Do not treat a partially written file as a successful result.
+                After any nonzero exit, inspect the working tree, preserve the
+                log, and decide whether the changes are safe to keep. On the next
+                attempt, record the changed variable—for example, “dependency
+                installed,” “write scope reduced,” or “acceptance command
+                corrected.” Cap automatic retries at a small number and escalate
+                persistent failures instead of creating an unbounded loop.
+              </p>
+            </section>
+
+            <section id="task-spec">
+              <h2>Use a task specification that prevents avoidable stalls</h2>
+              <p>
+                A non-interactive task should answer the questions a human would
+                otherwise resolve mid-run. Define one outcome, declare writable
+                scope, name exact verification commands, describe what not to do,
+                and supply a stop condition. Ask for evidence in the final message
+                so completion can be checked by a wrapper or reviewer.
+              </p>
+              <pre class="article-code"><code># Goal
+Fix the failing parser test with the smallest production-code change.
+
+# Scope
+- You may edit: src/parser.ts, test/parser.test.ts
+- Do not edit dependencies, generated files, CI, or unrelated formatting.
+
+# Acceptance criteria
+- `npm test -- --runInBand test/parser.test.ts` exits 0.
+- Existing empty-input behavior remains unchanged.
+- The final response lists changed files and the verification exit code.
+
+# Execution rules
+- Inspect nearby code and tests before editing.
+- Do not ask questions. If evidence is insufficient, make no speculative edit.
+- Do not publish, push, open a PR, or access external accounts.
+
+# Stop conditions
+- Stop after two materially different failed fix attempts.
+- On a missing credential, unavailable dependency, or sandbox denial, report the
+  exact blocker and the smallest owner action required.</code></pre>
+              <p>
+                “Do whatever is needed” is not a task spec. It leaves scope,
+                authority, retries, and proof undefined. A bounded spec also
+                reduces the temptation to solve a permission problem by widening
+                the sandbox. For longer work, add a time or cost ceiling and a
+                named artifact path, then let the external supervisor enforce the
+                timeout.
+              </p>
+            </section>
+
+            <section id="checklist">
+              <h2>Production checklist for automated Codex CLI runs</h2>
+              <ol>
+                <li>Resolve and validate the absolute workspace path.</li>
+                <li>Verify authentication and the selected model before the job.</li>
+                <li>Choose read-only or workspace-write explicitly.</li>
+                <li>Keep progress logs, final output, and exit status separate.</li>
+                <li>Set a supervisor timeout and a bounded retry policy.</li>
+                <li>Review the diff and rerun deterministic checks outside the agent.</li>
+                <li>Treat a zero exit code as process evidence, not proof the change is correct.</li>
+              </ol>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://learn.chatgpt.com/docs/non-interactive-mode">
+                    OpenAI Docs: Non-interactive mode
+                  </a>
+                </li>
+                <li>
+                  <a href="https://learn.chatgpt.com/docs/developer-commands?surface=cli">
+                    OpenAI Docs: Codex CLI developer commands
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact" id="resources">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">One operator, auditable workers</p>
+            <h2>Turn headless runs into a supervised workflow</h2>
+            <p>
+              The paid orchestration guide covers the operating model. The free
+              agent-watch repository provides a practical starting point for
+              monitoring background agent processes and their evidence.
+            </p>
+          </div>
+          <div>
+            <a
+              class="action action-primary"
+              href="https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration"
+            >
+              Read the orchestration guide
+            </a>
+            <p>
+              <a class="text-link" href="https://github.com/soul-sol/agent-watch">
+                Get agent-watch free on GitHub
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
