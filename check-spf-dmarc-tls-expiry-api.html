@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static troubleshooting guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Check SPF and DMARC records plus TLS certificate expiry through one JSON API, then automate honest DNS and HTTPS monitoring in CI or cron."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Check SPF, DMARC, and TLS certificate expiry with one API">
+    <meta
+      property="og:description"
+      content="Read email-authentication records, monitor HTTPS certificate lifetime, and add practical CI or cron checks."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/check-spf-dmarc-tls-expiry-api.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/check-spf-dmarc-tls-expiry-api.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Check SPF, DMARC, and TLS certificate expiry with one API</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Check SPF, DMARC, and TLS certificate expiry with one API",
+        "description": "Check SPF and DMARC records plus TLS certificate expiry through one JSON API, then automate honest DNS and HTTPS monitoring in CI or cron.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/check-spf-dmarc-tls-expiry-api.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#diagnose">Diagnose</a>
+          <a class="nav-link" href="#fixes">Fixes</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="go-cross-architecture-ci-kit.html"
+          >
+            CI kit, USD 9
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">DNS, email authentication, and TLS monitoring guide</p>
+            <h1>Check SPF, DMARC, and TLS certificate expiry with one API</h1>
+            <p class="article-dek">
+              A single request can reveal whether SPF and DMARC records are
+              published and how many days remain on the verified HTTPS
+              certificate. The fields are useful monitoring signals, not a
+              complete email-policy or security audit.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>11 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#diagnose">Read SPF and DMARC correctly</a></li>
+              <li><a href="#tls">Monitor TLS expiry</a></li>
+              <li><a href="#fixes">Automate the checks</a></li>
+              <li><a href="#faq">Limits and questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                Request
+                <a href="https://dns.lifestep.io/domain?name=example.com">
+                  <span class="inline-code">https://dns.lifestep.io/domain?name=example.com</span>
+                </a>
+                to receive DNS information and a verified port-443 TLS summary
+                as JSON. For lightweight monitoring, inspect
+                <span class="inline-code">has_spf</span>,
+                <span class="inline-code">spf_record</span>,
+                <span class="inline-code">has_dmarc</span>,
+                <span class="inline-code">dmarc_record</span>, and
+                <span class="inline-code">tls.days_until_expiry</span>.
+              </p>
+              <p>
+                Presence is only the first question. A published SPF record
+                may still be invalid, an apparently healthy DMARC record may
+                remain in monitoring mode forever, and a successful TLS
+                handshake is narrower than a full certificate-chain and
+                protocol audit.
+              </p>
+            </section>
+
+            <section id="diagnose">
+              <h2>What SPF and DMARC actually do</h2>
+              <p>
+                Sender Policy Framework (SPF) lets a domain publish which
+                sending hosts may use that domain in the SMTP envelope
+                <span class="inline-code">MAIL FROM</span> or HELO identity.
+                The receiving mail server evaluates the connecting IP against
+                the policy. SPF does not authenticate the visible From header,
+                encrypt mail, inspect message content, or prove that an
+                authorized sender is trustworthy.
+              </p>
+              <p>
+                Domain-based Message Authentication, Reporting, and
+                Conformance (DMARC) applies to the domain in the visible From
+                header. It passes when at least one supported authentication
+                path passes <em>and aligns</em>: SPF with an aligned envelope
+                domain, or DKIM with an aligned signing domain. DMARC also
+                publishes receiver policy and reporting destinations. That
+                alignment is why DMARC addresses a gap that SPF alone leaves.
+              </p>
+
+              <h3>SPF mistakes that turn a record into false confidence</h3>
+              <p>
+                A domain must not publish multiple TXT records that each begin
+                with <span class="inline-code">v=spf1</span>. They are not
+                combined; multiple SPF policies produce a permanent error.
+                Merge authorized senders into one record instead. Long records
+                may be split into multiple quoted strings inside one TXT
+                resource record, which is different from publishing multiple
+                SPF records.
+              </p>
+              <p>
+                SPF evaluation also limits DNS-triggering terms to ten. The
+                budget includes mechanisms such as
+                <span class="inline-code">include</span>,
+                <span class="inline-code">a</span>,
+                <span class="inline-code">mx</span>,
+                <span class="inline-code">exists</span>, and redirects,
+                including work reached through includes. Exceeding the limit
+                results in a permanent error. Count the expanded dependency
+                tree, not merely the number of words in the top-level record.
+              </p>
+              <p>
+                Finally, <span class="inline-code">~all</span> is softfail:
+                the host probably is not authorized, but the receiver applies
+                its own handling. <span class="inline-code">-all</span> is
+                fail: the domain explicitly says unmatched hosts are not
+                authorized. Moving to <span class="inline-code">-all</span>
+                before inventorying every legitimate sender can reject valid
+                mail, but leaving <span class="inline-code">~all</span>
+                indefinitely weakens the policy signal. Test real sending
+                paths and change deliberately.
+              </p>
+
+              <h3>How to read a DMARC record</h3>
+              <pre class="article-code"><code>v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com; adkim=s; aspf=r</code></pre>
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>Common DMARC tags and their operational meaning</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Tag</th>
+                      <th scope="col">Meaning</th>
+                      <th scope="col">What to check</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="inline-code">v=DMARC1</span></td>
+                      <td>Protocol version</td>
+                      <td>It must begin the DMARC record</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">p</span></td>
+                      <td>Policy for failing organizational-domain mail</td>
+                      <td><span class="inline-code">none</span>, <span class="inline-code">quarantine</span>, or <span class="inline-code">reject</span></td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">rua</span></td>
+                      <td>Aggregate report destination</td>
+                      <td>Mailbox ownership, authorization, and report processing</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">pct</span></td>
+                      <td>Legacy sampling tag removed by RFC 9989</td>
+                      <td>Do not rely on it for a current rollout</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">adkim</span>, <span class="inline-code">aspf</span></td>
+                      <td>Strict or relaxed identifier alignment</td>
+                      <td>Whether subdomains may align organizationally</td>
+                    </tr>
+                    <tr>
+                      <td><span class="inline-code">sp</span></td>
+                      <td>Policy for subdomains</td>
+                      <td>Whether it intentionally differs from <span class="inline-code">p</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                <span class="inline-code">p=none</span> asks receivers to
+                monitor rather than quarantine or reject because of DMARC.
+                That is sensible during discovery, especially while reviewing
+                aggregate reports for forgotten senders. The common failure is
+                treating discovery as completion: a record stays at
+                <span class="inline-code">p=none</span> for years, reports go
+                unread, and no enforcement decision is made. Promotion is not
+                automatic; confirm aligned legitimate traffic, fix exceptions,
+                then choose a policy appropriate to the domain's risk.
+              </p>
+
+              <h3>Use the API fields without over-reading them</h3>
+              <pre class="article-code"><code>curl --fail --silent --show-error \
+  'https://dns.lifestep.io/domain?name=example.com' |
+  jq '{
+    has_spf,
+    spf_record,
+    has_dmarc,
+    dmarc_record,
+    tls: {days_until_expiry: .tls.days_until_expiry}
+  }'</code></pre>
+              <p>
+                For <span class="inline-code">example.com</span>, the live
+                response exposes the real policy strings in
+                <span class="inline-code">spf_record</span> and
+                <span class="inline-code">dmarc_record</span>, while the TLS
+                day count changes as the active certificate ages or is
+                renewed. Read the response at run time instead of copying a
+                dated number into documentation.
+              </p>
+              <p>
+                A true <span class="inline-code">has_spf</span> or
+                <span class="inline-code">has_dmarc</span> means a matching
+                record was detected. This endpoint does not fully parse the
+                policy, enumerate the expanded SPF lookup graph, identify
+                multiple SPF policies, validate every DMARC tag, process DMARC
+                reports, or check DKIM selectors. Use dedicated validators and
+                mail-flow evidence before changing enforcement.
+              </p>
+            </section>
+
+            <section id="tls">
+              <h2>Why TLS certificate expiry monitoring matters</h2>
+              <p>
+                An expired HTTPS certificate can turn a healthy application
+                into browser warnings, failed API clients, broken webhooks,
+                and unavailable automation. Renewal systems reduce the risk,
+                but they can fail because of DNS changes, challenge routing,
+                permissions, rate limits, load-balancer drift, or a certificate
+                installed on only some endpoints. Monitoring the certificate
+                actually presented on port 443 tests a different layer from
+                checking a renewal job's status.
+              </p>
+              <p>
+                The API resolves public A and AAAA records and performs a
+                normal, certificate-verifying TLS handshake to port 443 with
+                the requested domain as the server name. On success,
+                <span class="inline-code">tls.days_until_expiry</span> is an
+                integer derived from the presented certificate's
+                <span class="inline-code">not_after</span> time. Alert early
+                enough to investigate; common operational thresholds are a
+                warning at 30 days and a failure at 14 or 7 days, adjusted to
+                renewal cadence and ownership.
+              </p>
+              <p>
+                A successful handshake is not a full chain audit. It shows
+                that this client could build a trusted chain and verify the
+                hostname at that moment. A deeper audit may inventory every
+                served intermediate across endpoints, test protocol versions
+                and cipher suites, inspect key sizes and signature algorithms,
+                check revocation or Certificate Transparency expectations,
+                validate OCSP stapling, assess DANE or HSTS, and compare CDN or
+                load-balancer nodes. The API also does not follow application
+                redirects or prove that every network path serves the same
+                certificate.
+              </p>
+            </section>
+
+            <section id="fixes">
+              <h2>Automate SPF, DMARC, and TLS expiry in CI or cron</h2>
+              <p>
+                Use presence and expiry as fast regression gates, then schedule
+                deeper policy validation separately. This shell check fails if
+                SPF or DMARC disappears, if TLS data is unavailable, or if the
+                certificate has fewer than 14 days remaining:
+              </p>
+              <pre class="article-code"><code>#!/usr/bin/env bash
+set -euo pipefail
+
+domain="${1:?usage: check-domain DOMAIN}"
+json="$(curl --fail --silent --show-error --get \
+  'https://dns.lifestep.io/domain' \
+  --data-urlencode "name=$domain")"
+
+jq -e '
+  .has_spf == true and
+  .has_dmarc == true and
+  (.tls.days_until_expiry | type == "number") and
+  .tls.days_until_expiry &gt;= 14
+' &lt;&lt;&lt;"$json" &gt;/dev/null
+
+jq '{domain, has_spf, spf_record, has_dmarc,
+     dmarc_record, tls_days: .tls.days_until_expiry}' \
+  &lt;&lt;&lt;"$json"</code></pre>
+              <p>
+                In CI, run the script for domains whose DNS policy is managed
+                by the repository. Avoid blocking unrelated application builds
+                on a transient DNS or network failure unless that tradeoff is
+                intentional. A scheduled workflow is usually better for
+                operational monitoring because it runs even when nobody
+                commits code.
+              </p>
+              <p>
+                Classify failures before alerting. A successful response with
+                <span class="inline-code">has_dmarc=false</span> is a policy
+                regression; an HTTP error, timeout, or null field is an
+                observation failure that may need a retry. After an intentional
+                DNS edit, recursive resolvers can retain the previous answer
+                until its TTL expires. Record the requested domain, timestamp,
+                full response, and resolver vantage point so an operator can
+                distinguish propagation from an accidental deletion. Never
+                print private deployment secrets alongside the diagnostic.
+              </p>
+              <h3>Design a CI check around declared expectations</h3>
+              <p>
+                Presence alone is too weak for a domain you control. Keep an
+                expected policy file in the repository: whether the domain is
+                supposed to send mail, the approved SPF ending, the intended
+                DMARC policy, the minimum TLS days, and the team that owns each
+                alert. Compare normalized live values with that declaration.
+                A parked domain might intentionally publish
+                <span class="inline-code">v=spf1 -all</span> and
+                <span class="inline-code">p=reject</span>, while a complex mail
+                domain may be in a documented migration. The same generic
+                assertion is not correct for both.
+              </p>
+              <p>
+                Run monitoring on a schedule and also after reviewed DNS or
+                certificate-infrastructure changes. Give network failures a
+                small, bounded retry with backoff; do not retry a valid response
+                whose policy contradicts the declaration. Pin the script and
+                review changes like production code. If the public API is an
+                external dependency for a critical gate, define how outages
+                are handled and consider running the open-source service in a
+                controlled environment. Either way, independently validate
+                high-impact policy changes before authorizing mail rejection.
+              </p>
+              <pre class="article-code"><code># Run every morning at 06:15; use an absolute script path.
+15 6 * * * /opt/domain-monitor/check-domain example.com \
+  &gt;&gt;/var/log/domain-monitor.log 2&gt;&amp;1</code></pre>
+              <p>
+                Cron output alone is not an alert. Connect failures to a route
+                someone owns, such as an incident system or monitored email,
+                and suppress repeated notifications without hiding recovery.
+                Store the previous policy strings so an unexpected change from
+                <span class="inline-code">-all</span> to
+                <span class="inline-code">~all</span>, or from
+                <span class="inline-code">p=reject</span> to
+                <span class="inline-code">p=none</span>, is visible even when
+                both records still exist. Recheck from another resolver or
+                network before treating one observation as authoritative.
+              </p>
+            </section>
+
+            <section id="faq">
+              <h2>Limits and common questions</h2>
+              <h3>Does this API return domain registration expiry?</h3>
+              <p>
+                No. It provides DNS and TLS information only. It does not query
+                registrar WHOIS or RDAP data, so TLS certificate expiry must
+                not be confused with domain-registration expiry, ownership,
+                creation date, registrar status, or contact information.
+              </p>
+              <h3>Does a clean response mean the domain is secure?</h3>
+              <p>
+                No. This is not a security scanner and does not certify a
+                website, mail system, sender, or domain as safe. DNS answers
+                vary by resolver, geography, caching, time, and split-horizon
+                configuration. TLS is reported only when a verified port-443
+                handshake succeeds; a null TLS object can reflect timeout,
+                resolution, reachability, or certificate-verification failure.
+              </p>
+              <h3>What should be checked beyond these three signals?</h3>
+              <p>
+                Validate the complete SPF dependency graph, DMARC syntax and
+                reporting authorization, real SPF/DKIM alignment from message
+                headers, DKIM key rotation, and aggregate DMARC reports. For
+                HTTPS, test all relevant endpoints and perform a deliberate
+                protocol and certificate-chain audit. These checks complement
+                the compact API rather than being replaced by it.
+              </p>
+
+              <aside class="notice" aria-labelledby="resources-title">
+                <h3 id="resources-title">Free API and source code</h3>
+                <p>
+                  Try the public
+                  <a href="https://dns.lifestep.io">Domain Info API</a>, then
+                  review the implementation and documented limits in the
+                  <a href="https://github.com/soul-sol/domain-info-api">
+                    open-source domain-info-api repository
+                  </a>.
+                </p>
+              </aside>
+
+              <h3>Standards references</h3>
+              <ul>
+                <li>
+                  <a href="https://www.rfc-editor.org/rfc/rfc7208.html">
+                    RFC 7208: Sender Policy Framework (SPF)
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.rfc-editor.org/rfc/rfc9989.html">
+                    RFC 9989: DMARC
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">From a manual check to monitoring</p>
+            <h2>Inspect the live JSON and automate only the signals you understand</h2>
+            <p>
+              Start with one domain, confirm the policy against your real mail
+              flow, then choose expiry thresholds and alert ownership.
+            </p>
+          </div>
+          <a class="action action-primary" href="https://dns.lifestep.io">
+            Open the Domain Info API
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
