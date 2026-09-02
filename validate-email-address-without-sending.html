@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<!-- SIZE_OK: answer-first static troubleshooting guide with no client-side JavaScript. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Validate an email address without sending mail using syntax, DNS, heuristics, and cautious SMTP checks—without pretending delivery is guaranteed."
+    >
+    <meta name="author" content="Verified Automation Services">
+    <meta name="theme-color" content="#fbfcf8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11130f" media="(prefers-color-scheme: dark)">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Validate an email address without sending: an honest API guide">
+    <meta
+      property="og:description"
+      content="What syntax, DNS, heuristics, and SMTP probes can—and cannot—tell you about an email address."
+    >
+    <meta
+      property="og:url"
+      content="https://soul-sol.github.io/verified-automation-services/validate-email-address-without-sending.html"
+    >
+    <meta name="twitter:card" content="summary">
+    <link
+      rel="canonical"
+      href="https://soul-sol.github.io/verified-automation-services/validate-email-address-without-sending.html"
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+    <title>Validate an email address without sending: honest API checks</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Validate an email address without sending: an honest API guide",
+        "description": "Validate an email address without sending mail using syntax, DNS, heuristics, and cautious SMTP checks—without pretending delivery is guaranteed.",
+        "datePublished": "2026-09-02",
+        "dateModified": "2026-09-02",
+        "mainEntityOfPage": "https://soul-sol.github.io/verified-automation-services/validate-email-address-without-sending.html",
+        "author": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Verified Automation Services",
+          "url": "https://soul-sol.github.io/verified-automation-services/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the article</a>
+
+    <header class="topbar">
+      <nav class="container nav" aria-label="Primary navigation">
+        <a class="wordmark" href="./">Verified Automation</a>
+        <div class="nav-links">
+          <a class="nav-link" href="#diagnose">Diagnose</a>
+          <a class="nav-link" href="#fixes">Fixes</a>
+          <a
+            class="nav-link nav-link-primary action action-primary"
+            href="go-cross-architecture-ci-kit.html"
+          >
+            CI kit, USD 9
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <article>
+        <header class="article-hero">
+          <div class="container">
+            <p class="eyebrow">Email validation API guide</p>
+            <h1>How to validate an email address without sending an email</h1>
+            <p class="article-dek">
+              You can reject malformed addresses, test whether the domain is
+              configured for mail, and flag risk patterns. You cannot prove
+              that a person owns an inbox without a confirmation message.
+            </p>
+            <div class="article-meta">
+              <span>By Verified Automation Services</span>
+              <span>Published <time datetime="2026-09-02">September 2, 2026</time></span>
+              <span>10 minute read</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="container article-shell">
+          <nav class="article-toc" aria-label="Article contents">
+            <h2>In this guide</h2>
+            <ol>
+              <li><a href="#quick-answer">Quick answer</a></li>
+              <li><a href="#diagnose">The four validation layers</a></li>
+              <li><a href="#fixes">Use an API and read its verdict</a></li>
+              <li><a href="#prevention">Batch and privacy safeguards</a></li>
+              <li><a href="#faq">Common questions</a></li>
+            </ol>
+          </nav>
+
+          <div class="article-body">
+            <section class="answer-panel" id="quick-answer">
+              <h2>Quick answer</h2>
+              <p>
+                To validate an email address without sending, combine four
+                different signals: practical syntax parsing, DNS mail-routing
+                checks, disposable or role-address heuristics, and—only when
+                justified—a cautious SMTP conversation that stops before
+                message data. Each layer answers a narrower question. None
+                proves ownership, consent, inbox placement, or future delivery.
+              </p>
+              <p>
+                For a signup form, the safest pattern is to use syntax and DNS
+                immediately, show typo suggestions for confirmation, and send
+                a double-opt-in message when ownership actually matters. Treat
+                ambiguous network results as <strong>unknown</strong>, not invalid.
+              </p>
+            </section>
+
+            <section id="diagnose">
+              <h2>The four layers of email validation</h2>
+
+              <h3>1. Practical syntax, not a mythical perfect regex</h3>
+              <p>
+                An email-like identifier has a local part, an <span class="inline-code">@</span>,
+                and a domain. RFC 5322 permits more forms than most web forms
+                expect, including quoted local parts. SMTP adds transport
+                constraints: RFC 5321 specifies a maximum local part of 64
+                octets and a domain of 255 octets. Internationalized addresses
+                add SMTPUTF8 and IDN considerations, so “RFC compliant” is not
+                a useful one-bit marketing claim unless the supported profile
+                is stated.
+              </p>
+              <p>
+                A practical validator should trim accidental surrounding
+                whitespace, require one usable address rather than a display
+                name or comma-separated list, reject empty labels and
+                consecutive dots where they are not legal, normalize the
+                domain for DNS, and preserve the local part. Do not lowercase
+                or silently rewrite the whole address: local-part semantics
+                belong to the receiving system.
+              </p>
+
+              <h3>2. Domain DNS: MX first, then the RFC 5321 fallback</h3>
+              <p>
+                Query the domain for MX records. An MX target must resolve to
+                an address record, such as A for IPv4 or AAAA for IPv6. A
+                common implementation error is to declare “no MX” invalid
+                immediately. RFC 5321 says that when the MX lookup succeeds
+                but returns an empty MX list, mail transport treats the domain
+                as an implicit MX pointing to the domain itself. The validator
+                must therefore try its A and AAAA records.
+              </p>
+              <p>
+                Keep “no records,” NXDOMAIN, DNS timeout, and SERVFAIL separate.
+                A temporary resolver failure is unknown and may succeed later.
+                Also recognize a Null MX: RFC 7505 defines a single
+                <span class="inline-code">MX 0 .</span> record as an explicit
+                declaration that the domain does not accept email. That is not
+                the same as an empty MX answer and should not fall back to A or
+                AAAA.
+              </p>
+
+              <h3>3. Disposable and role-address heuristics</h3>
+              <p>
+                A maintained domain list can flag temporary-mail providers.
+                A local-part list can flag role accounts such as
+                <span class="inline-code">admin@</span>,
+                <span class="inline-code">billing@</span>, or
+                <span class="inline-code">support@</span>. These are risk or
+                routing signals, not validity failures. A disposable address
+                may work now, and a role inbox may be exactly the correct
+                contact for a vendor invoice.
+              </p>
+              <p>
+                Lists age quickly, custom domains can forward to disposable
+                services, and words such as “sales” can also be a real person's
+                local part. Return the observed flag and let the product apply
+                an explicit policy. Do not hide a business rule behind a label
+                such as “invalid.”
+              </p>
+
+              <h3>4. SMTP probing is unreliable—and can be rude</h3>
+              <p>
+                An SMTP probe connects to a receiving server, introduces
+                itself, supplies an envelope sender, asks about the candidate
+                with <span class="inline-code">RCPT TO</span>, and stops before
+                <span class="inline-code">DATA</span>. It sounds decisive, but
+                the reply is contextual. Greylisting intentionally gives a
+                temporary failure to an unfamiliar sender tuple and expects a
+                legitimate mail system to retry. A catch-all domain can accept
+                every invented recipient during SMTP and reject or discard the
+                message later. Large providers may conceal recipient status,
+                rate-limit probes, tarp it, or answer differently by IP
+                reputation.
+              </p>
+              <p>
+                Timeouts can mean a firewall or blocked outbound port 25, not
+                a bad address. Repeated recipient probes also consume someone
+                else's infrastructure and resemble directory harvesting. That
+                can get the probing IP throttled or blocklisted, damaging real
+                outbound mail. Probe only when you have a legitimate purpose
+                and authorization, at low volume, with a valid identity; send
+                <span class="inline-code">RSET</span> and
+                <span class="inline-code">QUIT</span>, and never treat a
+                temporary reply as permanent evidence.
+              </p>
+
+              <div class="decision-table-wrap">
+                <table class="decision-table">
+                  <caption>What each result actually supports</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Evidence</th>
+                      <th scope="col">Reasonable conclusion</th>
+                      <th scope="col">Do not conclude</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Syntax fails</td>
+                      <td>Input is unusable in the supported profile</td>
+                      <td>The user intended no similar address</td>
+                    </tr>
+                    <tr>
+                      <td>Null MX or NXDOMAIN</td>
+                      <td>The domain cannot currently receive mail</td>
+                      <td>The address will never become usable</td>
+                    </tr>
+                    <tr>
+                      <td>MX or A/AAAA fallback works</td>
+                      <td>The domain has a mail route</td>
+                      <td>The named mailbox exists</td>
+                    </tr>
+                    <tr>
+                      <td>SMTP accepts RCPT TO</td>
+                      <td>The server accepted this probe in this context</td>
+                      <td>Delivery, reading, consent, or ownership is guaranteed</td>
+                    </tr>
+                    <tr>
+                      <td>Temporary or network failure</td>
+                      <td>The result is unknown; retry later if justified</td>
+                      <td>The address is invalid</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="fixes">
+              <h2>Check if an email is valid with an API</h2>
+
+              <h3>Use the public endpoint for an individual check</h3>
+              <p>
+                The following requests use synthetic examples. They do not
+                send a message. Because the email is a URL query parameter,
+                it can appear in browser history, proxy logs, CDN logs, and
+                server access logs. Do not paste a real person's address into
+                a public test unless your privacy basis and retention controls
+                permit it.
+              </p>
+              <pre class="article-code"><code>curl 'https://email.lifestep.io/validate?email=not-an-address'
+
+curl 'https://email.lifestep.io/validate?email=person%40gmial.com'
+
+curl 'https://email.lifestep.io/validate?email=alice%40example.com'</code></pre>
+              <p>
+                The first example should fail the supported syntax profile.
+                The second is syntactically plausible but contains the common
+                <span class="inline-code">gmial.com</span> transposition; the
+                useful result is a suggestion to confirm
+                <span class="inline-code">gmail.com</span>, not an automatic
+                rewrite. The third separates syntax from mail routing:
+                <span class="inline-code">example.com</span> is reserved for
+                examples and advertises that it does not accept ordinary mail.
+                Read the returned JSON as current evidence because DNS and
+                provider data can change.
+              </p>
+
+              <h3>Make typo suggestions explainable</h3>
+              <p>
+                Compare only the domain against a curated set of common mail
+                providers and your own known customer domains. Edit distance
+                makes the rule auditable: standard Levenshtein distance counts
+                the swapped letters in <span class="inline-code">gmial</span>
+                as two substitutions, while Damerau–Levenshtein treats the
+                adjacent transposition as one edit. Weight keyboard-neighbor
+                mistakes and common top-level-domain slips carefully, then
+                apply a conservative threshold.
+              </p>
+              <p>
+                Show “Did you mean person@gmail.com?” and require the user to
+                choose. Never change the submitted domain silently. A short
+                distance does not prove intent, especially for company domains
+                or deliberately similar brands.
+              </p>
+
+              <h3>Interpret score and verdict separately</h3>
+              <p>
+                A score can summarize which checks passed, but it is not a
+                deliverability probability unless it was calibrated against a
+                representative, recent outcome dataset. Publish the components
+                behind the number. A useful verdict model distinguishes
+                <strong>invalid</strong> for decisive evidence,
+                <strong>risky</strong> for policy flags or catch-all behavior,
+                <strong>unknown</strong> for transient or inconclusive checks,
+                and <strong>valid-looking</strong> for an address that passed
+                the available layers.
+              </p>
+              <p>
+                Even a maximum score cannot promise that the mailbox exists,
+                belongs to the claimed person, will accept the next message,
+                will place it in the inbox, or gave marketing consent. Use a
+                confirmation link for ownership, normal bounce handling for
+                delivery, and a separate consent record for lawful outreach.
+              </p>
+
+              <aside class="article-callout" aria-labelledby="need-kit-title">
+                <h3 id="need-kit-title">Email validation resources</h3>
+                <p>
+                  Try the
+                  <a href="https://email.lifestep.io">hosted email validator</a>
+                  for an individual check, or review and self-host the
+                  <a href="https://github.com/soul-sol/email-validator-api">
+                    email-validator-api source on GitHub
+                  </a>.
+                </p>
+                <p>
+                  Inspect the current response schema, deployment terms, and
+                  privacy behavior before integrating either path into a
+                  production form.
+                </p>
+              </aside>
+            </section>
+
+            <section id="prevention">
+              <h2>Batch validation without turning uncertainty into damage</h2>
+              <ol>
+                <li>
+                  Deduplicate exact normalized inputs while preserving an
+                  index that maps each result back to the source row.
+                </li>
+                <li>
+                  Parse syntax first. Group valid-looking addresses by domain,
+                  cache DNS answers for their TTL, and avoid repeating the same
+                  lookup for every row.
+                </li>
+                <li>
+                  Bound concurrency and respect rate limits. Retry DNS timeouts,
+                  HTTP 429 responses, and temporary SMTP results with jitter;
+                  do not retry permanent syntax or Null MX failures.
+                </li>
+                <li>
+                  Preserve per-layer evidence and an explicit unknown state.
+                  One timeout must not downgrade a whole domain to invalid.
+                </li>
+                <li>
+                  Measure removals against later confirmed bounces and signups.
+                  That is how a score becomes calibrated to your audience
+                  rather than merely looking precise.
+                </li>
+              </ol>
+              <p>
+                Email addresses that identify people are generally personal
+                data under GDPR. Validation is processing, even when no message
+                is sent. Establish a lawful purpose, disclose any processor,
+                minimize the fields and retention period, and secure the data.
+                Most importantly, <strong>do not log raw email addresses</strong>
+                in application, analytics, error, proxy, or tracing logs. Redact
+                query strings and request bodies. If correlation is necessary,
+                prefer a rotating secret-key HMAC over an unsalted hash, which
+                is easy to reverse by guessing common addresses. Delete batch
+                uploads and detailed results as soon as the operational purpose
+                is complete.
+              </p>
+            </section>
+
+            <section id="faq">
+              <h2>Common questions</h2>
+
+              <h3>Can I verify that a mailbox exists without sending?</h3>
+              <p>
+                Not reliably. Syntax and DNS can reject clear failures, and an
+                SMTP server may expose a recipient decision, but catch-all,
+                greylisting, policy filtering, and reputation-based responses
+                prevent a universal existence check. A confirmation email is
+                the normal proof that someone controls the destination.
+              </p>
+
+              <h3>Should an address with no MX record be rejected?</h3>
+              <p>
+                Not immediately. If the MX lookup succeeds with an empty list,
+                RFC 5321's implicit-MX rule requires checking the domain's A or
+                AAAA address records. Reject a confirmed NXDOMAIN, unusable
+                route, or Null MX; classify temporary DNS failures as unknown.
+              </p>
+
+              <h3>Is a role or disposable address invalid?</h3>
+              <p>
+                No. Those labels describe risk or product-policy signals. A
+                role inbox can be the correct business destination, and a
+                disposable mailbox may receive mail. Decide whether to allow,
+                challenge, or review it based on the actual abuse cost.
+              </p>
+
+              <h3>What is the safest validation flow for signup?</h3>
+              <p>
+                Validate practical syntax, check DNS, offer a typo correction,
+                accept inconclusive network results provisionally, and send a
+                time-limited confirmation link. Keep validation and marketing
+                consent separate, and never store the address in diagnostic
+                logs.
+              </p>
+            </section>
+
+            <section class="article-sources" aria-labelledby="sources-title">
+              <h2 id="sources-title">Primary sources</h2>
+              <ul>
+                <li>
+                  <a href="https://www.rfc-editor.org/rfc/rfc5322.html#section-3.4.1">
+                    RFC 5322: Addr-Spec Specification
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.rfc-editor.org/rfc/rfc5321.html#section-5.1">
+                    RFC 5321: Locating the Target Host
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.rfc-editor.org/rfc/rfc7505.html">
+                    RFC 7505: A Null MX Resource Record for Domains That Accept No Mail
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.rfc-editor.org/rfc/rfc6647.html">
+                    RFC 6647: Email Greylisting
+                  </a>
+                </li>
+                <li>
+                  <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj">
+                    GDPR: Articles 4 and 5 on personal data and processing principles
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <section class="section-compact">
+        <div class="container final-cta">
+          <div>
+            <p class="eyebrow eyebrow-inverse">Validate signals, not promises</p>
+            <h2>Check an address and inspect the evidence</h2>
+            <p>
+              Use the hosted validator for a quick check, or audit the source
+              before self-hosting it for production data.
+            </p>
+          </div>
+          <a class="action action-primary" href="https://email.lifestep.io">
+            Open the validator
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <p>Verified Automation Services</p>
+        <p>Public samples. Fixed scope. Verifiable delivery.</p>
+        <a class="text-link" href="./">Browse all services</a>
+      </div>
+    </footer>
+  </body>
+</html>
