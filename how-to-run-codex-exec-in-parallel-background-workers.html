@@ -219,7 +219,7 @@ fi
                 <span class="inline-code">$!</span> immediately; after another
                 background command starts, it refers to the newer process.
               </p>
-              <pre class="article-code"><code>mkdir -p prompts .codex-runs
+              <pre class="article-code"><code>mkdir -p prompts .codex-runs/api .codex-runs/tests .codex-runs/docs
 
 nohup ./run-worker.sh api /srv/app prompts/api.txt &gt;/dev/null 2&gt;&amp;1 &amp;
 printf '%s\n' "$!" &gt; .codex-runs/api/worker.pid
