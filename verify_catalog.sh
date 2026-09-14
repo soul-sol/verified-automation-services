@@ -66,7 +66,10 @@ sitemap_urls=(
     --xpath '//*[local-name()="loc"]/text()' \
     "$ROOT/sitemap.xml" 2>/dev/null)}"
 )
-[[ "${#sitemap_urls[@]}" -eq 12 ]]
+# ⛔ 이 수는 "사이트맵이 내가 아는 상태 그대로인가"를 지키는 값이다. 페이지를 의도적으로
+# 추가·삭제했을 때만 함께 고쳐라. 2026-09-15: 12 로 박혀 있어 실제 36 과 어긋나 게이트가
+# **항상 실패**했다 — 가격 정정 이전부터 그랬고, 그래서 아무도 이 스크립트로 검증할 수 없었다.
+[[ "${#sitemap_urls[@]}" -eq 36 ]]
 [[ "${sitemap_urls[(Ie)https://soul-sol.github.io/verified-automation-services/showcase.html]}" -eq 0 ]]
 
 indexable_pages=(
@@ -169,7 +172,7 @@ rg -q 'data-scorecard' "$ROOT/spreadsheet-integrity-scorecard.html"
 rg -q '답변과 워크북은 저장하거나 전송하지 않습니다' \
   "$ROOT/spreadsheet-integrity-scorecard.html"
 node "$ROOT/test_spreadsheet_scorecard.mjs" >/dev/null
-rg -q 'USD 9' "$ROOT/github-actions-ci-triage-ebook.html"
+rg -q 'USD 39' "$ROOT/github-actions-ci-triage-ebook.html"
 rg -q 'downloads/github-actions-ci-triage-preview-ko.pdf' \
   "$ROOT/github-actions-ci-triage-ebook.html"
 rg -Fq 'GitHub Actions CI Triage Ebook + templates' \
@@ -179,17 +182,17 @@ rg -q 'downloads/codex-agents-operations-preview-ko.pdf' \
   "$ROOT/codex-agents-operations-handbook.html"
 rg -Fq 'Codex AGENTS.md Operations Handbook + templates' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
-rg -q 'USD 9' "$ROOT/spreadsheet-preflight-ebook.html"
+rg -q 'USD 39' "$ROOT/spreadsheet-preflight-ebook.html"
 rg -q 'downloads/spreadsheet-preflight-preview-ko.pdf' \
   "$ROOT/spreadsheet-preflight-ebook.html"
 rg -Fq 'Spreadsheet Preflight Ebook + CLI' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
-rg -q 'USD 9' "$ROOT/go-cross-architecture-ci-kit.html"
+rg -q 'USD 39' "$ROOT/go-cross-architecture-ci-kit.html"
 rg -q 'samples/go-cross-architecture.yml' \
   "$ROOT/go-cross-architecture-ci-kit.html"
 rg -Fq 'Go/Linux Cross-Architecture CI Starter Kit' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
-rg -q 'USD 9' "$ROOT/agents-md-audit-kit.html"
+rg -q 'USD 39' "$ROOT/agents-md-audit-kit.html"
 rg -q 'https://github.com/soul-sol/agents-md-guide-ko' \
   "$ROOT/agents-md-audit-kit.html"
 rg -Fq 'AGENTS.md Audit Kit + templates' \
@@ -227,7 +230,15 @@ if rg -n '—|biz\.lifestep@gmail\.com|skilly12@gmail\.com|vbn1477@gmail\.com' \
   echo "Landing page contains a banned dash or private email." >&2
   exit 1
 fi
-rg -q 'USD 9' "$ROOT/README.md"
+# ⛔ "USD 39 가 어딘가에 있다" 는 단언은 **부분 회귀를 못 잡는다** — 한 줄만 옛 가격으로 되돌려도
+# 다른 줄의 39 때문에 통과한다(2026-09-15 실측: 거짓 케이스가 rc=0 으로 빠져나갔다).
+# 지킬 수 있는 형태는 "폐기된 가격이 하나도 없다" 쪽이다. 7·9·14·29 는 지금 어떤 상품의 가격도 아니다.
+# (19 는 비라이브 문의 상품이 아직 쓰고 있고, 49·89·176·5 는 현행가라 제외한다.)
+if rg -n --glob '!node_modules' 'USD (7|9|14|29)\b|\$(7|9|14|29)\b' "$ROOT"; then
+  echo "Catalog still advertises a retired price (7/9/14/29). Fix it or update products/prices.json." >&2
+  exit 1
+fi
+rg -q 'USD 39' "$ROOT/README.md"
 rg -q 'AGENTS.md Audit Kit' "$ROOT/README.md"
 rg -q 'GitHub does not process or escrow payment' "$ROOT/DELIVERY.md"
 rg -q 'spreadsheet-audit.yml' "$ROOT/samples/spreadsheet-preflight-checklist.md"

@@ -31,7 +31,7 @@ Use one of the public samples before requesting paid work:
   links, units, overrides, control totals, and independent review
 - Runs entirely in the browser without uploads, accounts, or stored answers
 - Gives a score-specific path to the free checklist, spreadsheet audit,
-  USD 9 ebook + CLI, or the Developer Reliability Bundle
+  USD 39 ebook + CLI, or the Developer Reliability Bundle
 - Start here: [run the free scorecard](spreadsheet-integrity-scorecard.html)
 
 ### Free CI Reliability Scorecard
@@ -61,7 +61,7 @@ deterministic. The full paid bundle is not published in this repository.
 
 ### Spreadsheet Preflight Ebook + CLI
 
-- Launch price: **USD 9**
+- Launch price: **USD 39**
 - Format: 23-page Korean PDF
 - Extras: one-page checklist, dependency-free read-only Python CLI, and quick start
 - Free preview: [read the first 6 pages](downloads/spreadsheet-preflight-preview-ko.pdf)
@@ -77,7 +77,7 @@ this repository.
 
 ### GitHub Actions CI Failure Triage Ebook
 
-- Launch price: **USD 9**
+- Launch price: **USD 39**
 - Format: 19-page Korean PDF
 - Extras: incident report template and 12-item triage checklist
 - Free preview: [read the first 6 pages](downloads/github-actions-ci-triage-preview-ko.pdf)
@@ -94,7 +94,7 @@ Free troubleshooting guide:
 
 ### Codex AGENTS.md Operations Handbook
 
-- Price: USD 9 launch price
+- Price: USD 19
 - Format: 16-page Korean PDF
 - Extras: operations checklist and persistence audit template
 - Free preview: [read the first 6 pages](downloads/codex-agents-operations-preview-ko.pdf)
@@ -111,7 +111,7 @@ Free troubleshooting guide:
 
 ### Go/Linux Cross-Architecture CI Starter Kit
 
-- Launch price: **USD 9**
+- Launch price: **USD 39**
 - Targets: Linux AMD64, ARM64, and 386 with `CGO_ENABLED=0`
 - Extras: local compile report, optional QEMU runtime smoke, Dockerfile,
   working example, and adoption checklist
@@ -128,7 +128,7 @@ paid runner capacity, or a guarantee that every platform will build.
 
 ### AGENTS.md Audit Kit
 
-- Launch price: **USD 9**
+- Launch price: **USD 39**
 - Runtime: dependency-free, read-only Python 3.13+ CLI
 - Checks: instruction discovery, required sections, backtick paths, explicit
   conflicts, and the default 32 KiB file and effective-chain boundary
@@ -217,11 +217,11 @@ an untested prompt.
 | Product | Price |
 |---|---:|
 | Developer Reliability Bundle, 5 products | USD 49 |
-| Spreadsheet Preflight Ebook + CLI | USD 9 |
-| AGENTS.md Audit Kit + templates | USD 9 |
-| GitHub Actions CI Triage Ebook + templates | USD 9 |
-| Open Source Bounty Monitor Kit | USD 9 |
-| Go/Linux Cross-Architecture CI Starter Kit | USD 9 |
+| Spreadsheet Preflight Ebook + CLI | USD 39 |
+| AGENTS.md Audit Kit + templates | USD 39 |
+| GitHub Actions CI Triage Ebook + templates | USD 39 |
+| Open Source Bounty Monitor Kit | USD 19 |
+| Go/Linux Cross-Architecture CI Starter Kit | USD 39 |
 
 GitHub records purchase interest only; it does not process payment. A supported
 payment route and delivery method are confirmed before any payment is requested.

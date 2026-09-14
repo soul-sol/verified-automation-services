@@ -44,7 +44,7 @@ export function evaluateSpreadsheetScorecard(values) {
       id: "BUILD",
       title: "점검\u00a0순서를 표준화할\u00a0단계입니다",
       copy: "핵심 구조는 관리 중입니다. 단위·수식·입력·검산을 한\u00a0절차로\u00a0묶으세요.",
-      primaryLabel: "USD 9 전자책과 CLI 보기",
+      primaryLabel: "USD 39 전자책과 CLI 보기",
       primaryHref: "spreadsheet-preflight-ebook.html",
       secondaryLabel: "감사 서비스 범위 보기",
       secondaryHref:

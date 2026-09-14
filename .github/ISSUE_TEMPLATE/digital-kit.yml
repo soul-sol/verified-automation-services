@@ -11,12 +11,12 @@ body:
       label: Product
       options:
         - Developer Reliability Bundle — USD 49
-        - Spreadsheet Preflight Ebook + CLI — USD 9
-        - AGENTS.md Audit Kit + templates — USD 9
-        - GitHub Actions CI Triage Ebook + templates — USD 19
+        - Spreadsheet Preflight Ebook + CLI — USD 39
+        - AGENTS.md Audit Kit + templates — USD 39
+        - GitHub Actions CI Triage Ebook + templates — USD 39
         - Codex AGENTS.md Operations Handbook + templates — USD 19
         - Open Source Bounty Monitor Kit — USD 19
-        - Go/Linux Cross-Architecture CI Starter Kit — USD 29
+        - Go/Linux Cross-Architecture CI Starter Kit — USD 39
     validations:
       required: true
   - type: dropdown
