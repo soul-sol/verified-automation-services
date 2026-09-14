@@ -234,8 +234,17 @@ fi
 # 다른 줄의 39 때문에 통과한다(2026-09-15 실측: 거짓 케이스가 rc=0 으로 빠져나갔다).
 # 지킬 수 있는 형태는 "폐기된 가격이 하나도 없다" 쪽이다. 7·9·14·29 는 지금 어떤 상품의 가격도 아니다.
 # (19 는 비라이브 문의 상품이 아직 쓰고 있고, 49·89·176·5 는 현행가라 제외한다.)
-if rg -n --glob '!node_modules' 'USD (7|9|14|29)\b|\$(7|9|14|29)\b' "$ROOT"; then
+if rg -n --glob '!node_modules' --glob '!verify_catalog.sh' 'USD (7|9|14|29)\b|\$(7|9|14|29)\b' "$ROOT"; then
   echo "Catalog still advertises a retired price (7/9/14/29). Fix it or update products/prices.json." >&2
+  exit 1
+fi
+# ⛔ 2026-09-15: 위 패턴은 영문·기호 표기만 본다. 이 카탈로그는 한국어 페이지라 가격이 한글로도
+# 쓰여 있었고, 그래서 라이브 구매 버튼 라벨이 낡은 가격인 채로 배포됐다(실측).
+# 같은 값을 두 가지 표기로 쓰는 문서에서는 한쪽만 막는 게이트가 통과 도장을 찍어 준다.
+# (비라이브 문의 상품 Codex Handbook 이 쓰는 값은 제외한다 — digital-kit.yml 과 일치.)
+# ⛔ 앞쪽 경계 [^0-9] 를 빼지 마라: 그게 없으면 '39달러' 안의 '9달러' 에 걸려 **정상 상태에서 항상 실패**한다(실측).
+if rg -n --glob '!node_modules' --glob '!verify_catalog.sh' '(^|[^0-9])(7|9|14|29)\s*달러' "$ROOT"; then
+  echo "Catalog still advertises a retired price in Korean (7/9/14/29 달러)." >&2
   exit 1
 fi
 rg -q 'USD 39' "$ROOT/README.md"
