@@ -198,7 +198,9 @@ rg -q 'https://github.com/soul-sol/agents-md-guide-ko' \
 rg -Fq 'AGENTS.md Audit Kit + templates' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
 rg -q 'USD 49' "$ROOT/developer-reliability-bundle.html"
-rg -q 'USD 85' "$ROOT/developer-reliability-bundle.html"
+# ⛔ 2026-09-15 제거: 이 줄은 'USD 85' 가 **있어야 통과** 시켰다. 그런데 85 는 틀린 합계다 —
+# 라이브 구성품 네 개만 39×4=156 이고, 나머지 하나(OSS)는 확정 가격이 없다. 게이트가 오류를 못 잡은 게
+# 아니라 **오류의 존재를 요구하고 있었다.** 검증 불가능한 합계는 게이트로 고정하지 말고 문서에서 뺀다.
 rg -Fq 'Developer Reliability Bundle — USD 49' \
   "$ROOT/.github/ISSUE_TEMPLATE/digital-kit.yml"
 rg -q 'developer-reliability-bundle-v1.0.0' \
@@ -234,7 +236,7 @@ fi
 # 다른 줄의 39 때문에 통과한다(2026-09-15 실측: 거짓 케이스가 rc=0 으로 빠져나갔다).
 # 지킬 수 있는 형태는 "폐기된 가격이 하나도 없다" 쪽이다. 7·9·14·29 는 지금 어떤 상품의 가격도 아니다.
 # (19 는 비라이브 문의 상품이 아직 쓰고 있고, 49·89·176·5 는 현행가라 제외한다.)
-if rg -n --glob '!node_modules' --glob '!verify_catalog.sh' 'USD (7|9|14|29)\b|\$(7|9|14|29)\b' "$ROOT"; then
+if rg -n --glob '!node_modules' --glob '!verify_catalog.sh' '(USD|\$)[[:space:]\xc2\xa0]*(7|9|14|29)\b|(^|[^0-9])(7|9|14|29)[[:space:]\xc2\xa0]*dollars?\b' "$ROOT"; then
   echo "Catalog still advertises a retired price (7/9/14/29). Fix it or update products/prices.json." >&2
   exit 1
 fi
@@ -243,7 +245,7 @@ fi
 # 같은 값을 두 가지 표기로 쓰는 문서에서는 한쪽만 막는 게이트가 통과 도장을 찍어 준다.
 # (비라이브 문의 상품 Codex Handbook 이 쓰는 값은 제외한다 — digital-kit.yml 과 일치.)
 # ⛔ 앞쪽 경계 [^0-9] 를 빼지 마라: 그게 없으면 '39달러' 안의 '9달러' 에 걸려 **정상 상태에서 항상 실패**한다(실측).
-if rg -n --glob '!node_modules' --glob '!verify_catalog.sh' '(^|[^0-9])(7|9|14|29)\s*달러' "$ROOT"; then
+if rg -n --glob '!node_modules' --glob '!verify_catalog.sh' '(^|[^0-9])(7|9|14|29)[[:space:]\xc2\xa0]*달러' "$ROOT"; then
   echo "Catalog still advertises a retired price in Korean (7/9/14/29 달러)." >&2
   exit 1
 fi
@@ -259,5 +261,8 @@ rg -q 'github-actions-exit-code-137-oom-fix.html' "$ROOT/SAMPLES.md"
 rg -q 'codex-agents-md-loading-troubleshooting.html' "$ROOT/SAMPLES.md"
 rg -q 'agents-md-audit-kit.html' "$ROOT/SAMPLES.md"
 rg -q 'go test ./...' "$ROOT/samples/go-cross-architecture.yml"
+
+
+python3 "$ROOT/check_page_prices.py" "$ROOT"
 
 print "service catalog verification: all checks passed"

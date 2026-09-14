@@ -46,7 +46,6 @@ Use one of the public samples before requesting paid work:
 ### Developer Reliability Bundle
 
 - Launch price: **USD 49**
-- Individual launch-price total: **USD 85**
 - Format: five independently versioned ZIP products in one verified bundle
 - Includes: two Korean technical ebooks, three execution kits, checksums, and
   a delivery checklist
